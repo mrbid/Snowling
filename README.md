@@ -17,6 +17,8 @@ At the moment you can only play this game with a keyboard. _May add Joypad suppo
 
 I tend to just use UP, DOWN, LEFT, RIGHT and R when I play, but if you are competitive you will want to get accustomed with using 0-9.
 
+**Video:** https://www.youtube.com/watch?v=RN6lRq4bKWk
+
 ---
 
 ### Snapcraft / Software Center
