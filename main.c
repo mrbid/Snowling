@@ -43,10 +43,6 @@ double uw, uh, uw2, uh2; // normalised pixel dpi
 // mouse input
 double x=0, y=0, sx=0, sy=0;
 
-// camera
-// GLfloat xrot = 0.f;
-// GLfloat yrot = 0.f;
-
 // render state id's
 GLint projection_id;
 GLint modelview_id;
@@ -71,16 +67,21 @@ vec lightpos = {0.f, 7.f, 0.f};
 
 // models
 ESModel mdlPlane;
-GLuint tex_skyplane;
-
+    GLuint tex_skyplane;
 ESModel mdlScene;
 ESModel mdlDynamic;
 ESModel mdlMinball;
+uint bindstate = 0;
 
-// simulation
+// simulation / game vars
 GLfloat stepspeed = 0.f;
+GLfloat hardness = 0.f;
+uint ground = 0;
+uint score = 0;
+uint penalty = 0;
 uint state = 0;
 double s0lt = 0;
+vec bp;
 
 
 //*************************************
@@ -93,10 +94,119 @@ void timestamp(char* ts)
 }
 
 //*************************************
+// generation functions
+//*************************************
+void blotColour(GLfloat r, GLfloat g, GLfloat b, GLushort streak)
+{
+    const GLushort rci = esRand(0, dynamic_numvert-streak) * 3;
+    for(GLushort i = 0; i < streak; i++)
+    {
+        dynamic_colors[rci+(i*3)] = r;
+        dynamic_colors[rci+(i*3)+1] = g;
+        dynamic_colors[rci+(i*3)+2] = b;
+    }
+}
+
+void gNewRound()
+{
+    // count & log
+    ground++;
+    char strts[16];
+    timestamp(&strts[0]);
+    printf("[%s] STARTING ROUND %u - SCORE %u - PENALTY %u\n", strts, ground, score, penalty);
+    if(ground > 1)
+    {
+        char title[256];
+        sprintf(title, "Snowling - ROUND %u - SCORE %u - PENALTY %u", ground, score, penalty);
+        glfwSetWindowTitle(window, title);
+    }
+
+    // reset
+    const GLushort tc = dynamic_numvert*3;
+    for(GLushort i = 0; i < tc; i++)
+        dynamic_colors[i] = 1.f;
+
+    // ice
+    for(uint i = 0; i < 6; i++)
+        blotColour(0.f, 1.f, 1.f, 32);
+
+    // boost
+    for(uint i = 0; i < 6; i++)
+        blotColour(0.50196f, 0.00000f, 0.50196f, 6);
+
+    // lava
+    for(uint i = 0; i < 2; i++)
+        blotColour(0.81176f, 0.06275f, 0.12549f, 6);
+
+    // rebind
+    esBind(GL_ARRAY_BUFFER, &mdlDynamic.cid, dynamic_colors, sizeof(dynamic_colors), GL_STATIC_DRAW);
+}
+
+uint checkCollisions()
+{
+    static double ccl = 0;
+    if(t < ccl)
+        return 0;
+    else
+        ccl = t + 0.1; // limit checkCollisions() execution frequency
+
+    static double tt1 = 0, tt2 = 0, tt3 = 0;
+    
+    const GLushort tc = dynamic_numvert*3;
+    for(GLushort i = 0; i < tc; i+=3)
+    {
+        if(t > tt1 && dynamic_colors[i] == 0.f && dynamic_colors[i+1] == 1.f && dynamic_colors[i+2] == 1.f)
+        {
+            const vec cp = {dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
+            if(vDist(cp, bp) < 0.13f)
+            {
+                hardness += 1.f;
+                char strts[16];
+                timestamp(&strts[0]);
+                printf("[%s] hit ice: %u\n", strts, (uint)hardness);
+                tt1 = t+0.3; // freq limiter
+                return 1;
+            }
+        }
+        else if(t > tt2 && dynamic_colors[i] == 0.50196f && dynamic_colors[i+1] == 0.f && dynamic_colors[i+2] == 0.50196f)
+        {
+            const vec cp = {dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
+            if(vDist(cp, bp) < 0.13f)
+            {
+                stepspeed *= 3.4f;
+                char strts[16];
+                timestamp(&strts[0]);
+                printf("[%s] hit boost: %.1f\n", strts, stepspeed);
+                tt2 = t+0.3; // freq limiter
+                return 2;
+            }
+        }
+        else if(t > tt3 && dynamic_colors[i] == 0.81176f && dynamic_colors[i+1] == 0.06275f && dynamic_colors[i+2] == 0.12549f)
+        {
+            const vec cp = {dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
+            if(vDist(cp, bp) < 0.13f)
+            {
+                penalty++;
+                char strts[16];
+                timestamp(&strts[0]);
+                printf("[%s] hit lava: %u\n", strts, penalty);
+                printf("[%s] ~~ PENALTY YOU GOT MELTED BY LAVA ~~\n", strts);
+                tt3 = t+0.3; // freq limiter
+                return 3;
+            }
+        }
+    }
+    
+    return 0;
+}
+
+//*************************************
 // render functions
 //*************************************
 void rSkyPlane()
 {
+    bindstate = 0;
+
     mIdent(&model);
     mTranslate(&model, -40.f, 0.f, 0.f);
     mRotY(&model, -90.f*DEG2RAD);
@@ -126,6 +236,8 @@ void rSkyPlane()
 
 void rStaticScene()
 {
+    bindstate = 0;
+
     glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
@@ -150,6 +262,8 @@ void rStaticScene()
 
 void rDynamicScene()
 {
+    bindstate = 0;
+
     glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
@@ -172,7 +286,7 @@ void rDynamicScene()
     glDrawElements(GL_TRIANGLES, dynamic_numind, GL_UNSIGNED_SHORT, 0);
 }
 
-void rMinball(GLfloat x, GLfloat y, GLfloat z, GLfloat s)
+void rMinballRGB(GLfloat x, GLfloat y, GLfloat z, GLfloat r, GLfloat g, GLfloat b, GLfloat s)
 {
     mIdent(&model);
     mTranslate(&model, x, y, z);
@@ -182,17 +296,25 @@ void rMinball(GLfloat x, GLfloat y, GLfloat z, GLfloat s)
 
     glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &modelview.m[0][0]);
-    glUniform3f(color_id, 1.0f, 1.0f, 1.0f);
+    glUniform3f(color_id, r, g, b);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
     glUniform1f(opacity_id, 1.0f);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mdlMinball.vid);
-    glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(position_id);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdlMinball.iid);
+    if(bindstate == 0)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, mdlMinball.vid);
+        glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(position_id);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdlMinball.iid);
+        bindstate = 1;
+    }
 
     glDrawElements(GL_TRIANGLES, minball_numind, GL_UNSIGNED_SHORT, 0);
+}
+
+void rMinball(GLfloat x, GLfloat y, GLfloat z, GLfloat s)
+{
+    rMinballRGB(x, y, z, 1.f, 1.f, 1.f, s);
 }
 
 void rPin(GLfloat x, GLfloat y, GLfloat z)
@@ -300,7 +422,6 @@ void main_loop()
 //*************************************
 // camera control
 //*************************************
-
     static GLfloat camdist = -15.f;
     mIdent(&view);
     mTranslate(&view, 0.f, -0.5f, camdist);
@@ -310,27 +431,27 @@ void main_loop()
 //*************************************
 // begin render
 //*************************************
-
-    // Clear the image to the background colour and clear the depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //*************************************
 // main render
 //*************************************
 
-glEnable(GL_DEPTH_TEST);
-
+    // render sky plane
     shadeFullbrightT(&position_id, &projection_id, &modelview_id, &texcoord_id, &sampler_id);
     rSkyPlane();
 
+
+    // render static and dynamic scenes
     shadeLambert3(&position_id, &projection_id, &modelview_id, &lightpos_id, &normal_id, &color_id, &opacity_id);
     rStaticScene();
     rDynamicScene();
 
+    // only rendering icospheres from here on out
     shadeLambert(&position_id, &projection_id, &modelview_id, &lightpos_id, &color_id, &opacity_id);
     rPinSet();
 
-    ///////////////////////
+    // simulate the blowing snowball & transition the game states
     static double s1lt = 0;
     static GLfloat x = 10.5f; 
 
@@ -356,35 +477,68 @@ glEnable(GL_DEPTH_TEST);
 
             lightpos.y = 7.f * smoothStepN(x*0.09523809701f);
 
-            rMinball(x, h-0.017f, getHeight(h), ns);
+            bp.x = x;
+            bp.y = h-0.017f;
+            bp.z = getHeight(h);
+            rMinballRGB(bp.x, bp.y, bp.z, 1.f-(hardness*0.22f), 1.f, 1.f, ns);
+            if(checkCollisions() == 3)
+                state = 2;
         }
     }
     else if(state == 1)
     {
-        // impact force = speed . hardness . size
-
         if(s1lt == 0)
-            s1lt = t;// + 3; // pause time is longer based on impact force
+        {
+            // calc score
+            if(hardness > 0.f)
+            {
+                const GLfloat fscore = ((hardness * stepspeed) * 0.5f)+0.5f;
+                uint rscore = (uint)fscore;
+                if(rscore >= 10)
+                {
+                    rscore = 10;
+                    char strts[16];
+                    timestamp(&strts[0]);
+                    printf("[%s] !!! STRIKE !!! - ROUND %u - SCORE %u\n", strts, ground, rscore);
+                }
+                else
+                {
+                    char strts[16];
+                    timestamp(&strts[0]);
+                    printf("[%s] ~~ ROUND %u SCORE %u ~~\n", strts, ground, rscore);
+                }
+                score += rscore;
+            }
+            else
+            {
+                char strts[16];
+                timestamp(&strts[0]);
+                printf("[%s] ~~ PENALTY YOU FAILED TO KNOCK DOWN ANY PINS ~~\n", strts);
+                penalty++;
+            }
+
+            // pause time between rounds
+            s1lt = t + 3;
+        }
         if(t > s1lt)
             state = 2;
     }
     else if(state == 2)
     {
+        // reset
         lightpos.y = 7.f;
         x = 10.5f;
         camdist = -15.f;
         stepspeed = 0.f;
+        hardness = 0.f;
         state = 0;
         s1lt = 0;
+        gNewRound();
     }
-
-    
-
 
 //*************************************
 // swap buffers / display render
 //*************************************
-
     glfwSwapBuffers(window);
 }
 
@@ -408,10 +562,10 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         if(key == GLFW_KEY_8){ stepspeed = 4.5f; s0lt = t - 9.9f; }
         if(key == GLFW_KEY_9){ stepspeed = 5.0f; s0lt = t; }
 
-        if(key == GLFW_KEY_LEFT){ stepspeed = 1.5f; s0lt = t - 3.3f; }
+        if(key == GLFW_KEY_LEFT) { stepspeed = 1.5f; s0lt = t - 3.3f; }
         if(key == GLFW_KEY_RIGHT){ stepspeed = 1.5f; s0lt = t - 6.4f; }
-        if(key == GLFW_KEY_UP){ stepspeed = 4.5f; s0lt = t - 9.9f; }
-        if(key == GLFW_KEY_DOWN){ stepspeed = 4.5f; s0lt = t; }
+        if(key == GLFW_KEY_UP)   { stepspeed = 4.5f; s0lt = t - 9.9f; }
+        if(key == GLFW_KEY_DOWN) { stepspeed = 4.5f; s0lt = t; }
 
         if(key == GLFW_KEY_R) 
         {
@@ -450,7 +604,7 @@ void window_size_callback(GLFWwindow* window, int width, int height)
 int main(int argc, char** argv)
 {
     // help
-    printf("James William Fletcher (james@voxdsp.com)\n");
+    printf("Snowling, A simple bowling game with a festive twist.\nJames William Fletcher (james@voxdsp.com)\n\n");
 
     // init glfw
     if(!glfwInit()){exit(EXIT_FAILURE);}
@@ -515,7 +669,6 @@ int main(int argc, char** argv)
 
     // ***** BIND MIN BALL *****
     esBind(GL_ARRAY_BUFFER, &mdlMinball.vid, minball_vertices, sizeof(minball_vertices), GL_STATIC_DRAW);
-    //esBind(GL_ARRAY_BUFFER, &mdlMinball.nid, minball_normals, sizeof(minball_normals), GL_STATIC_DRAW);
     esBind(GL_ARRAY_BUFFER, &mdlMinball.iid, minball_indices, sizeof(minball_indices), GL_STATIC_DRAW);
 
 
@@ -536,17 +689,21 @@ int main(int argc, char** argv)
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glEnable(GL_CULL_FACE);
+    glEnable(GL_DEPTH_TEST);
     glClearColor(0.0, 0.0, 0.0, 0.0);
 
 //*************************************
 // execute update / render loop
 //*************************************
 
+    // new round
+    gNewRound();
+
     // reset
     t = glfwGetTime();
 
     // event loop
-    double lt = glfwGetTime() + 16, fc = 0;
+    //double lt = glfwGetTime() + 16, fc = 0;
     while(!glfwWindowShouldClose(window))
     {
         t = glfwGetTime();
@@ -554,15 +711,15 @@ int main(int argc, char** argv)
         glfwPollEvents();
         main_loop();
         
-        fc++;
-        if(t > lt)
-        {
-            char strts[16];
-            timestamp(&strts[0]);
-            printf("[%s] FPS: %f\n", strts, fc/16);
-            fc = 0;
-            lt = t + 16;
-        }
+        // fc++;
+        // if(t > lt)
+        // {
+        //     char strts[16];
+        //     timestamp(&strts[0]);
+        //     printf("[%s] FPS: %f\n", strts, fc/16);
+        //     fc = 0;
+        //     lt = t + 16;
+        // }
     }
 
     // done
