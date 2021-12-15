@@ -1,0 +1,33 @@
+name: snowling
+base: core20
+version: '1.0
+summary: A simple bowling game with a festive twist.
+description: |
+  desc here
+
+grade: stable
+confinement: strict
+
+architectures:
+  - build-on: amd64
+    run-on: amd64
+  - build-on: arm64
+    run-on: arm64
+  - build-on: armhf
+    run-on: armhf
+
+apps:
+  snowling:
+    extensions: [gnome-3-38]
+    command: snowling
+
+parts:
+  snowling:
+    source: https://github.com/mrbid/Snowling
+    source-type: git
+    plugin: make
+    build-packages:
+    - libglfw3-dev
+    stage-packages:
+    - libglfw3
+    - libgles2
