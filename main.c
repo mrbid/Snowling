@@ -1,0 +1,582 @@
+/*
+    James William Fletcher (james@voxdsp.com)
+        December 2021
+
+    A simple bowling game with a festive twist.
+*/
+
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define uint unsigned int
+
+#include "gl.h"
+#define GLFW_INCLUDE_NONE
+#include "glfw3.h"
+
+#define NOSSE
+#define SEIR_RAND
+#include "esAux2.h"
+
+#include "res.h"
+#include "scene.h"
+#include "dynamic.h"
+#include "minball.h"
+
+
+//*************************************
+// globals
+//*************************************
+GLFWwindow* window;
+uint winw = 1024;
+uint winh = 768;
+double t = 0;
+GLfloat aspect;
+GLfloat sens = 0.3f;
+GLfloat sens_mul = 0.2f;
+double ww, wh, ww2, wh2;
+double uw, uh, uw2, uh2; // normalised pixel dpi
+
+// mouse input
+double x=0, y=0, sx=0, sy=0;
+// uint md = 0;
+
+// camera
+GLfloat xrot = 0.f;
+GLfloat yrot = 0.f;
+
+// render state id's
+GLint projection_id;
+GLint modelview_id;
+GLint position_id;
+GLint lightpos_id;
+GLint solidcolor_id;
+GLint color_id;
+GLint opacity_id;
+GLint normal_id;
+GLint type_id;
+GLint texcoord_id;
+GLint sampler_id;
+
+// render state matrices
+mat projection;
+mat view;
+mat model;
+mat modelview;
+
+// render state inputs
+vec lightpos = {0.f, 7.f, 0.f};
+
+// models
+ESModel mdlPlane;
+GLuint tex_skyplane;
+
+ESModel mdlScene;
+ESModel mdlDynamic;
+ESModel mdlMinball;
+
+
+//*************************************
+// utility functions
+//*************************************
+void timestamp(char* ts)
+{
+    const time_t tt = time(0);
+    strftime(ts, 16, "%H:%M:%S", localtime(&tt));
+}
+
+//*************************************
+// render functions
+//*************************************
+void rSkyPlane()
+{
+    mIdent(&model);
+    mTranslate(&model, -40.f, 0.f, 0.f);
+    mRotY(&model, -90.f*DEG2RAD);
+    mRotX(&model, -90.f*DEG2RAD);
+    mScale(&model, 40.f*aspect, 23.f*aspect, 0);
+
+    mMul(&modelview, &model, &view);
+
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*)&projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*)&modelview.m[0][0]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlPlane.tid);
+    glVertexAttribPointer(texcoord_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(texcoord_id);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, tex_skyplane);
+    glUniform1i(sampler_id, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlPlane.vid);
+    glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(position_id);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdlPlane.iid);
+
+    glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT, 0);
+}
+
+void rStaticScene()
+{
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &view.m[0][0]);
+    glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
+    glUniform1f(opacity_id, 1.0f);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlScene.vid);
+    glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(position_id);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlScene.nid);
+    glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(normal_id);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlScene.cid);
+    glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(color_id);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdlScene.iid);
+
+    glDrawElements(GL_TRIANGLES, scene_numind, GL_UNSIGNED_SHORT, 0);
+}
+
+void rDynamicScene()
+{
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &view.m[0][0]);
+    glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
+    glUniform1f(opacity_id, 1.0f);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlDynamic.vid);
+    glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(position_id);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlDynamic.nid);
+    glVertexAttribPointer(normal_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(normal_id);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlDynamic.cid);
+    glVertexAttribPointer(color_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(color_id);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdlDynamic.iid);
+
+    glDrawElements(GL_TRIANGLES, dynamic_numind, GL_UNSIGNED_SHORT, 0);
+}
+
+void rMinball(GLfloat x, GLfloat y, GLfloat z, GLfloat s)
+{
+    mIdent(&model);
+    mTranslate(&model, x, y, z);
+    if(s != 1.f)
+        mScale(&model, s, s, s);
+    mMul(&modelview, &model, &view);
+
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &modelview.m[0][0]);
+    glUniform3f(color_id, 1.0f, 1.0f, 1.0f);
+    glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
+    glUniform1f(opacity_id, 1.0f);
+
+    glBindBuffer(GL_ARRAY_BUFFER, mdlMinball.vid);
+    glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(position_id);
+
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mdlMinball.iid);
+
+    glDrawElements(GL_TRIANGLES, minball_numind, GL_UNSIGNED_SHORT, 0);
+}
+
+void rPin(GLfloat x, GLfloat y, GLfloat z)
+{
+    rMinball(x, y, z, 2.2f);
+    rMinball(x, y, z+0.14f, 1.45f);
+    rMinball(x, y, z+0.24f, 0.9f);
+}
+
+void rPinSet()
+{
+    rPin(-0.9, 0.f, 0.f);
+
+    rPin(-1.2, -0.14f, 0.f);
+    rPin(-1.2, 0.14f, 0.f);
+
+    rPin(-1.5, 0.f, 0.f);
+    rPin(-1.5, -0.28f, 0.f);
+    rPin(-1.5, 0.28f, 0.f);
+
+    rPin(-1.8, -0.14f, 0.f);
+    rPin(-1.8, 0.14f, 0.f);
+    rPin(-1.8, -0.42f, 0.f);
+    rPin(-1.8, 0.42f, 0.f);
+}
+
+//*************************************
+// interpolators and steppers for simulation
+//*************************************
+typedef struct { GLfloat y,z; } lt;
+GLfloat lerp(lt* a, lt* b, float y)
+{
+    return a->z + (((y - a->y) / (b->y - a->y)) * (b->z - a->z));
+}
+
+GLfloat getHeight(GLfloat y)
+{
+    static lt hlt[25];
+
+    if(hlt[0].z == 0.f)
+    {
+        hlt[0].y = 0;         hlt[0].z = 0.016813;
+        hlt[1].y = 0.102108;  hlt[1].z = 0.018762;
+        hlt[2].y = 0.191487;  hlt[2].z = 0.024604;
+        hlt[3].y = 0.280097;  hlt[3].z = 0.034311;
+        hlt[4].y = 0.367561;  hlt[4].z = 0.047843;
+        hlt[5].y = 0.453504;  hlt[5].z = 0.065142;
+        hlt[6].y = 0.537558;  hlt[6].z = 0.086133;
+        hlt[7].y = 0.619362;  hlt[7].z = 0.110728;
+        hlt[8].y = 0.698569;  hlt[8].z = 0.138821;
+        hlt[9].y = 0.774836;  hlt[9].z = 0.170289;
+        hlt[10].y = 0.847838; hlt[10].z = 0.205001;
+        hlt[11].y = 0.917262; hlt[11].z = 0.242807;
+        hlt[12].y = 0.982812; hlt[12].z = 0.283543;
+        hlt[13].y = 1.04421;  hlt[13].z = 0.327039;
+        hlt[14].y = 1.10118;  hlt[14].z = 0.373106;
+        hlt[15].y = 1.15349;  hlt[15].z = 0.421545;
+        hlt[16].y = 1.20092;  hlt[16].z = 0.472152;
+        hlt[17].y = 1.24325;  hlt[17].z = 0.524709;
+        hlt[18].y = 1.28032;  hlt[18].z = 0.57899;
+        hlt[19].y = 1.31195;  hlt[19].z = 0.634764;
+        hlt[20].y = 1.33803;  hlt[20].z = 0.69179;
+        hlt[21].y = 1.35843;  hlt[21].z = 0.749827;
+        hlt[22].y = 1.37305;  hlt[22].z = 0.808624;
+        hlt[23].y = 1.38185;  hlt[23].z = 0.867931;
+        hlt[24].y = 1.38479;  hlt[24].z = 0.927491;
+    }
+
+    y = fabs(y);
+
+    for(uint i = 0; i < 24; i++)
+        if(y >= hlt[i].y && y < hlt[i+1].y)
+            return lerp(&hlt[i], &hlt[i+1], y);
+
+    return -1.f; // bad times if this happens
+}
+
+GLfloat smoothStep(float a, float b, float i)
+{
+    // og smooth step
+    if(i <= a){return 0.0f;}
+    if(i >= b){return 1.0f;}
+    const float v = i - a / b - a;
+    return v * v * (3.f - 2.f * v);
+}
+
+static inline GLfloat smoothStep2(float v)
+{
+    return v * v * (3.f - 2.f * v);
+}
+
+
+//*************************************
+// update & render
+//*************************************
+void main_loop()
+{
+//*************************************
+// time delta for interpolation
+//*************************************
+    static double lt = 0;
+    double dt = t-lt;
+    lt = t;
+
+//*************************************
+// camera control
+//*************************************
+
+    static GLfloat camdist = -15.f;
+
+    // if(md == 1)
+    //     glfwGetCursorPos(window, &x, &y);
+
+    // double xd = (sx-x);
+    // double yd = (sy-y);
+
+    // xrot += xd*sens;
+    // yrot += yd*sens;
+    
+    // if(md == 1)
+    // {
+    //     glfwSetCursorPos(window, sx, sy);
+
+    //     mIdent(&view);
+    //     mTranslate(&view, 0.f, 0.f, -3.f);
+    //     mRotate(&view, -yrot * DEG2RAD, 1.f, 0.f, 0.f);
+    //     mRotate(&view, -xrot * DEG2RAD, 0.f, 0.f, 1.f);
+    // }
+    // else
+    // {
+        mIdent(&view);
+        mTranslate(&view, 0.f, -0.5f, camdist);
+        mRotate(&view, 80 * DEG2RAD, 1.f, 0.f, 0.f);
+        mRotate(&view, 90 * DEG2RAD, 0.f, 0.f, 1.f);
+    // }
+
+//*************************************
+// begin render
+//*************************************
+
+    // Clear the image to the background colour and clear the depth buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+//*************************************
+// main render
+//*************************************
+
+glEnable(GL_DEPTH_TEST);
+
+    shadeFullbrightT(&position_id, &projection_id, &modelview_id, &texcoord_id, &sampler_id);
+    rSkyPlane();
+
+    shadeLambert3(&position_id, &projection_id, &modelview_id, &lightpos_id, &normal_id, &color_id, &opacity_id);
+    rStaticScene();
+    rDynamicScene();
+
+    shadeLambert(&position_id, &projection_id, &modelview_id, &lightpos_id, &color_id, &opacity_id);
+    rPinSet();
+
+    ///////////////////////
+
+    static GLfloat x = 10.5f;
+    //x = 10.5f * fabs(sin(t)*0.2f);
+    static GLfloat d = 1.00f; //fabs(sin(t)*0.2f)*0.08f;
+    const GLfloat ddt = d * dt;
+    x -= ddt;
+    camdist += ddt;
+    if(x <= -1.f)
+    {
+        x = 10.5f;
+        camdist = -15.f;
+        d = 0.5f + randf()*6.f;
+    }
+
+    const GLfloat h = sin(t)*(1.38f-((10.5f-x)*0.1f));
+    //printf("H: %f %f\n", getHeight(h), h);
+
+    GLfloat ns = (10.5f-x)*0.4f;
+    if(ns < 1.f)
+        ns = 1.f;
+    rMinball(x, h-0.017f, getHeight(h), ns);
+
+    //lightpos.y = 7.f*(x*0.09523809701f);
+    //printf("S: %f %f %f\n", 7.f*smoothStep(0.f, 1.f, x*0.09523809701f), 7.f*smoothStep2(x*0.09523809701f), lightpos.y);
+    //lightpos.y = 7.f*smoothStep(0.f, 1.f, x*0.09523809701f);
+    lightpos.y = 7.f*smoothStep2(x*0.09523809701f);
+
+    // float h = sin(t);
+    // rMinball(10.5f, h, pow(fabs(h), 2.f), 1.f);
+
+    
+
+
+//*************************************
+// swap buffers / display render
+//*************************************
+
+    glfwSwapBuffers(window);
+}
+
+//*************************************
+// Input Handelling
+//*************************************
+static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if(action != GLFW_PRESS){return;}
+
+    switch(key)
+    {
+        case GLFW_KEY_ESCAPE:
+        {
+            glfwSetWindowShouldClose(window, GLFW_TRUE);
+        }
+        break;
+    }
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if(button == GLFW_MOUSE_BUTTON_LEFT)
+    {
+        if(action == GLFW_PRESS)
+        {
+            // if(md == 0)
+            // {
+            //     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
+            //     x = winw/2, y = winh/2;
+            //     glfwSetCursorPos(window, x, y);
+            //     sx = x, sy = y;
+            //     md = 1;
+            //     lightpos = (vec){0.f, 0.f, 0.f};
+            // }
+            // else
+            // {
+            //     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            //     sx = x, sy = y;
+            //     md = 0;
+            //     lightpos = (vec){0.f, 7.f, 0.f};
+            // }
+        }
+    }
+}
+
+void window_size_callback(GLFWwindow* window, int width, int height)
+{
+    winw = width;
+    winh = height;
+
+    glViewport(0, 0, winw, winh);
+    aspect = (GLfloat)winw / (GLfloat)winh;
+    ww = winw;
+    wh = winh;
+    ww2 = ww/2;
+    wh2 = wh/2;
+    uw = (double)aspect / ww;
+    uh = 1 / wh;
+    uw2 = (double)aspect / ww2;
+    uh2 = 1 / wh2;
+
+    mIdent(&projection);
+    mPerspective(&projection, 60.0f, aspect, 1.0f, 160.0f); 
+}
+
+//*************************************
+// Process Entry Point
+//*************************************
+int main(int argc, char** argv)
+{
+    // help
+    printf("James William Fletcher (james@voxdsp.com)\n");
+
+    // init glfw
+    if(!glfwInit()){exit(EXIT_FAILURE);}
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    glfwWindowHint(GLFW_SAMPLES, 16);
+    window = glfwCreateWindow(winw, winh, "Snowling", NULL, NULL);
+    if(!window)
+    {
+        glfwTerminate();
+        exit(EXIT_FAILURE);
+    }
+    const GLFWvidmode* desktop = glfwGetVideoMode(glfwGetPrimaryMonitor());
+    glfwSetWindowPos(window, ((desktop->width-sx)/2)-(winw/2), ((desktop->height-sy)/2)-(winh/2)); // center window on desktop
+    glfwSetWindowSizeCallback(window, window_size_callback);
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwMakeContextCurrent(window);
+    gladLoadGL(glfwGetProcAddress);
+    glfwSwapInterval(1); // 0 for immediate updates, 1 for updates synchronized with the vertical retrace, -1 for adaptive vsync
+
+    // set icon
+    unsigned char* ipd = (unsigned char*)&icon_image2.pixel_data;
+    srand(time(0));
+    const uint r = esRand(0, 2);
+    if(r == 0)      {ipd = (unsigned char*)&icon_image.pixel_data;}
+    else if(r == 1) {ipd = (unsigned char*)&icon_image1.pixel_data;}
+    else            {ipd = (unsigned char*)&icon_image2.pixel_data;}
+    glfwSetWindowIcon(window, 1, &(GLFWimage){16, 16, ipd});
+
+    // seed random
+    srandf(time(0));
+
+//*************************************
+// projection
+//*************************************
+
+    window_size_callback(window, winw, winh);
+
+//*************************************
+// bind vertex and index buffers
+//*************************************
+
+    // ***** BIND SKY PLANE *****
+    GLfloat  plane_vert[] = {1.000000,-1.000000,0.000000,-1.000000,1.000000,0.000000,-1.000000,-1.000000,0.000000,1.000000,1.000000,0.000000};
+    GLushort plane_indi[] = {0,1,2,0,3,1};
+    esBindModel(&mdlPlane, plane_vert, 9, plane_indi, 6);
+    GLfloat plane_texc[] = {1.f,1.f, 0.f,0.f, 0.f,1.f, 1.f,0.f};
+    esBind(GL_ARRAY_BUFFER, &mdlPlane.tid, plane_texc, sizeof(plane_texc), GL_STATIC_DRAW);
+    tex_skyplane = esLoadTexture(alpinebg.width, alpinebg.height, &alpinebg.pixel_data[0]);
+
+    // ***** BIND STATIC SCENE *****
+    esBind(GL_ARRAY_BUFFER, &mdlScene.vid, scene_vertices, sizeof(scene_vertices), GL_STATIC_DRAW);
+    esBind(GL_ARRAY_BUFFER, &mdlScene.nid, scene_normals, sizeof(scene_normals), GL_STATIC_DRAW);
+    esBind(GL_ARRAY_BUFFER, &mdlScene.cid, scene_colors, sizeof(scene_colors), GL_STATIC_DRAW);
+    esBind(GL_ARRAY_BUFFER, &mdlScene.iid, scene_indices, sizeof(scene_indices), GL_STATIC_DRAW);
+
+    // ***** BIND DYNAMIC SCENE *****
+    esBind(GL_ARRAY_BUFFER, &mdlDynamic.vid, dynamic_vertices, sizeof(dynamic_vertices), GL_STATIC_DRAW);
+    esBind(GL_ARRAY_BUFFER, &mdlDynamic.nid, dynamic_normals, sizeof(dynamic_normals), GL_STATIC_DRAW);
+    esBind(GL_ARRAY_BUFFER, &mdlDynamic.cid, dynamic_colors, sizeof(dynamic_colors), GL_STATIC_DRAW);
+    esBind(GL_ARRAY_BUFFER, &mdlDynamic.iid, dynamic_indices, sizeof(dynamic_indices), GL_STATIC_DRAW);
+
+    // ***** BIND MIN BALL *****
+    esBind(GL_ARRAY_BUFFER, &mdlMinball.vid, minball_vertices, sizeof(minball_vertices), GL_STATIC_DRAW);
+    //esBind(GL_ARRAY_BUFFER, &mdlMinball.nid, minball_normals, sizeof(minball_normals), GL_STATIC_DRAW);
+    esBind(GL_ARRAY_BUFFER, &mdlMinball.iid, minball_indices, sizeof(minball_indices), GL_STATIC_DRAW);
+
+
+//*************************************
+// compile & link shader program
+//*************************************
+
+    makeAllShaders();
+    // makeLambert();
+    // makeLambert1();
+    // makeLambert3();
+    // makeFullbright();
+    // makeFullbrightT();
+
+//*************************************
+// configure render options
+//*************************************
+
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_CULL_FACE);
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+
+//*************************************
+// execute update / render loop
+//*************************************
+
+    // reset
+    t = glfwGetTime();
+
+    // event loop
+    double lt = glfwGetTime() + 16, fc = 0;
+    while(!glfwWindowShouldClose(window))
+    {
+        t = glfwGetTime();
+
+        glfwPollEvents();
+        main_loop();
+        
+        fc++;
+        if(t > lt)
+        {
+            char strts[16];
+            timestamp(&strts[0]);
+            printf("[%s] FPS: %f\n", strts, fc/16);
+            fc = 0;
+            lt = t + 16;
+        }
+    }
+
+    // done
+    glfwDestroyWindow(window);
+    glfwTerminate();
+    exit(EXIT_SUCCESS);
+    return 0;
+}
