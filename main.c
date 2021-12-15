@@ -78,6 +78,7 @@ GLfloat stepspeed = 0.f;
 GLfloat hardness = 0.f;
 uint ground = 0;
 uint score = 0;
+uint rscore = 0;
 uint penalty = 0;
 uint state = 0;
 double s0lt = 0;
@@ -317,28 +318,35 @@ void rMinball(GLfloat x, GLfloat y, GLfloat z, GLfloat s)
     rMinballRGB(x, y, z, 1.f, 1.f, 1.f, s);
 }
 
-void rPin(GLfloat x, GLfloat y, GLfloat z)
+void rPin(GLfloat x, GLfloat y, GLfloat z, uint down)
 {
-    rMinball(x, y, z, 2.2f);
-    rMinball(x, y, z+0.14f, 1.45f);
-    rMinball(x, y, z+0.24f, 0.9f);
+    if(down == 1)
+    {
+        rMinballRGB(x, y, z, 1.f, 0.f, 0.f, 2.2f);
+    }
+    else
+    {
+        rMinball(x, y, z, 2.2f);
+        rMinball(x, y, z+0.14f, 1.45f);
+        rMinball(x, y, z+0.24f, 0.9f);
+    }
 }
 
 void rPinSet()
 {
-    rPin(-0.9, 0.f, 0.f);
+    rPin(-0.9, 0.f, 0.f, rscore >= 1 ? 1 : 0);
 
-    rPin(-1.2, -0.14f, 0.f);
-    rPin(-1.2, 0.14f, 0.f);
+    rPin(-1.2, -0.14f, 0.f, rscore >= 2 ? 1 : 0);
+    rPin(-1.2, 0.14f, 0.f, rscore >= 3 ? 1 : 0);
 
-    rPin(-1.5, 0.f, 0.f);
-    rPin(-1.5, -0.28f, 0.f);
-    rPin(-1.5, 0.28f, 0.f);
+    rPin(-1.5, 0.f, 0.f, rscore >= 4 ? 1 : 0);
+    rPin(-1.5, -0.28f, 0.f, rscore >= 5 ? 1 : 0);
+    rPin(-1.5, 0.28f, 0.f, rscore >= 6 ? 1 : 0);
 
-    rPin(-1.8, -0.14f, 0.f);
-    rPin(-1.8, 0.14f, 0.f);
-    rPin(-1.8, -0.42f, 0.f);
-    rPin(-1.8, 0.42f, 0.f);
+    rPin(-1.8, -0.14f, 0.f, rscore >= 7 ? 1 : 0);
+    rPin(-1.8, 0.14f, 0.f, rscore >= 8 ? 1 : 0);
+    rPin(-1.8, -0.42f, 0.f, rscore >= 9 ? 1 : 0);
+    rPin(-1.8, 0.42f, 0.f, rscore >= 10 ? 1 : 0);
 }
 
 //*************************************
@@ -493,10 +501,10 @@ void main_loop()
             if(hardness > 0.f)
             {
                 const GLfloat fscore = ((hardness * stepspeed) * 0.5f)+0.5f;
-                uint rscore = (uint)fscore;
+                rscore = (uint)fscore;
                 if(rscore >= 10)
                 {
-                    rscore = 10;
+                    rscore = 20;
                     char strts[16];
                     timestamp(&strts[0]);
                     printf("[%s] !!! STRIKE !!! - ROUND %u - SCORE %u\n", strts, ground, rscore);
@@ -533,6 +541,7 @@ void main_loop()
         hardness = 0.f;
         state = 0;
         s1lt = 0;
+        rscore = 0;
         gNewRound();
     }
 
