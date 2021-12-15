@@ -42,11 +42,10 @@ double uw, uh, uw2, uh2; // normalised pixel dpi
 
 // mouse input
 double x=0, y=0, sx=0, sy=0;
-// uint md = 0;
 
 // camera
-GLfloat xrot = 0.f;
-GLfloat yrot = 0.f;
+// GLfloat xrot = 0.f;
+// GLfloat yrot = 0.f;
 
 // render state id's
 GLint projection_id;
@@ -77,6 +76,11 @@ GLuint tex_skyplane;
 ESModel mdlScene;
 ESModel mdlDynamic;
 ESModel mdlMinball;
+
+// simulation
+GLfloat stepspeed = 0.f;
+uint state = 0;
+double s0lt = 0;
 
 
 //*************************************
@@ -275,7 +279,7 @@ GLfloat smoothStep(float a, float b, float i)
     return v * v * (3.f - 2.f * v);
 }
 
-static inline GLfloat smoothStep2(float v)
+static inline GLfloat smoothStepN(float v)
 {
     return v * v * (3.f - 2.f * v);
 }
@@ -298,32 +302,10 @@ void main_loop()
 //*************************************
 
     static GLfloat camdist = -15.f;
-
-    // if(md == 1)
-    //     glfwGetCursorPos(window, &x, &y);
-
-    // double xd = (sx-x);
-    // double yd = (sy-y);
-
-    // xrot += xd*sens;
-    // yrot += yd*sens;
-    
-    // if(md == 1)
-    // {
-    //     glfwSetCursorPos(window, sx, sy);
-
-    //     mIdent(&view);
-    //     mTranslate(&view, 0.f, 0.f, -3.f);
-    //     mRotate(&view, -yrot * DEG2RAD, 1.f, 0.f, 0.f);
-    //     mRotate(&view, -xrot * DEG2RAD, 0.f, 0.f, 1.f);
-    // }
-    // else
-    // {
-        mIdent(&view);
-        mTranslate(&view, 0.f, -0.5f, camdist);
-        mRotate(&view, 80 * DEG2RAD, 1.f, 0.f, 0.f);
-        mRotate(&view, 90 * DEG2RAD, 0.f, 0.f, 1.f);
-    // }
+    mIdent(&view);
+    mTranslate(&view, 0.f, -0.5f, camdist);
+    mRotate(&view, 80 * DEG2RAD, 1.f, 0.f, 0.f);
+    mRotate(&view, 90 * DEG2RAD, 0.f, 0.f, 1.f);
 
 //*************************************
 // begin render
@@ -349,35 +331,52 @@ glEnable(GL_DEPTH_TEST);
     rPinSet();
 
     ///////////////////////
+    static double s1lt = 0;
+    static GLfloat x = 10.5f; 
 
-    static GLfloat x = 10.5f;
-    //x = 10.5f * fabs(sin(t)*0.2f);
-    static GLfloat d = 1.00f; //fabs(sin(t)*0.2f)*0.08f;
-    const GLfloat ddt = d * dt;
-    x -= ddt;
-    camdist += ddt;
-    if(x <= -1.f)
+    if(state == 0)
     {
+        if(stepspeed == 0.f)
+        {
+            rMinball(10.5f, 0.f-0.017f, 0.f, 1.f);
+        }
+        else
+        {
+            const GLfloat ddt = stepspeed * dt;
+            x -= ddt;
+            camdist += ddt;
+            if(x <= -1.f)
+                state = 1;
+
+            const GLfloat h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
+
+            GLfloat ns = (10.5f-x)*0.4f;
+            if(ns < 1.f)
+                ns = 1.f;
+
+            lightpos.y = 7.f * smoothStepN(x*0.09523809701f);
+
+            rMinball(x, h-0.017f, getHeight(h), ns);
+        }
+    }
+    else if(state == 1)
+    {
+        // impact force = speed . hardness . size
+
+        if(s1lt == 0)
+            s1lt = t;// + 3; // pause time is longer based on impact force
+        if(t > s1lt)
+            state = 2;
+    }
+    else if(state == 2)
+    {
+        lightpos.y = 7.f;
         x = 10.5f;
         camdist = -15.f;
-        d = 0.5f + randf()*6.f;
+        stepspeed = 0.f;
+        state = 0;
+        s1lt = 0;
     }
-
-    const GLfloat h = sin(t)*(1.38f-((10.5f-x)*0.1f));
-    //printf("H: %f %f\n", getHeight(h), h);
-
-    GLfloat ns = (10.5f-x)*0.4f;
-    if(ns < 1.f)
-        ns = 1.f;
-    rMinball(x, h-0.017f, getHeight(h), ns);
-
-    //lightpos.y = 7.f*(x*0.09523809701f);
-    //printf("S: %f %f %f\n", 7.f*smoothStep(0.f, 1.f, x*0.09523809701f), 7.f*smoothStep2(x*0.09523809701f), lightpos.y);
-    //lightpos.y = 7.f*smoothStep(0.f, 1.f, x*0.09523809701f);
-    lightpos.y = 7.f*smoothStep2(x*0.09523809701f);
-
-    // float h = sin(t);
-    // rMinball(10.5f, h, pow(fabs(h), 2.f), 1.f);
 
     
 
@@ -396,40 +395,33 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 {
     if(action != GLFW_PRESS){return;}
 
-    switch(key)
+    if(stepspeed == 0.f)
     {
-        case GLFW_KEY_ESCAPE:
-        {
-            glfwSetWindowShouldClose(window, GLFW_TRUE);
-        }
-        break;
-    }
-}
+        if(key == GLFW_KEY_0){ stepspeed = 0.5f; s0lt = t - 1.1f; }
+        if(key == GLFW_KEY_1){ stepspeed = 1.0f; s0lt = t - 8.2f; }
+        if(key == GLFW_KEY_2){ stepspeed = 1.5f; s0lt = t - 3.3f; }
+        if(key == GLFW_KEY_3){ stepspeed = 2.0f; s0lt = t - 6.4f; }
+        if(key == GLFW_KEY_4){ stepspeed = 2.5f; s0lt = t - 5.5f; }
+        if(key == GLFW_KEY_5){ stepspeed = 3.0f; s0lt = t - 4.6f; }
+        if(key == GLFW_KEY_6){ stepspeed = 3.5f; s0lt = t - 7.7f; }
+        if(key == GLFW_KEY_7){ stepspeed = 4.0f; s0lt = t - 2.8f; }
+        if(key == GLFW_KEY_8){ stepspeed = 4.5f; s0lt = t - 9.9f; }
+        if(key == GLFW_KEY_9){ stepspeed = 5.0f; s0lt = t; }
 
-void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
-{
-    if(button == GLFW_MOUSE_BUTTON_LEFT)
-    {
-        if(action == GLFW_PRESS)
+        if(key == GLFW_KEY_LEFT){ stepspeed = 1.5f; s0lt = t - 3.3f; }
+        if(key == GLFW_KEY_RIGHT){ stepspeed = 1.5f; s0lt = t - 6.4f; }
+        if(key == GLFW_KEY_UP){ stepspeed = 4.5f; s0lt = t - 9.9f; }
+        if(key == GLFW_KEY_DOWN){ stepspeed = 4.5f; s0lt = t; }
+
+        if(key == GLFW_KEY_R) 
         {
-            // if(md == 0)
-            // {
-            //     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
-            //     x = winw/2, y = winh/2;
-            //     glfwSetCursorPos(window, x, y);
-            //     sx = x, sy = y;
-            //     md = 1;
-            //     lightpos = (vec){0.f, 0.f, 0.f};
-            // }
-            // else
-            // {
-            //     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-            //     sx = x, sy = y;
-            //     md = 0;
-            //     lightpos = (vec){0.f, 7.f, 0.f};
-            // }
+            stepspeed = 0.5f + randf()*6.f;
+            s0lt = t - randf()*60.f;
         }
     }
+
+    if(key == GLFW_KEY_ESCAPE)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
 
 void window_size_callback(GLFWwindow* window, int width, int height)
@@ -475,7 +467,6 @@ int main(int argc, char** argv)
     glfwSetWindowPos(window, ((desktop->width-sx)/2)-(winw/2), ((desktop->height-sy)/2)-(winh/2)); // center window on desktop
     glfwSetWindowSizeCallback(window, window_size_callback);
     glfwSetKeyCallback(window, key_callback);
-    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwMakeContextCurrent(window);
     gladLoadGL(glfwGetProcAddress);
     glfwSwapInterval(1); // 0 for immediate updates, 1 for updates synchronized with the vertical retrace, -1 for adaptive vsync
@@ -532,12 +523,12 @@ int main(int argc, char** argv)
 // compile & link shader program
 //*************************************
 
-    makeAllShaders();
-    // makeLambert();
+    // makeAllShaders();
+    makeLambert();
     // makeLambert1();
-    // makeLambert3();
+    makeLambert3();
     // makeFullbright();
-    // makeFullbrightT();
+    makeFullbrightT();
 
 //*************************************
 // configure render options
