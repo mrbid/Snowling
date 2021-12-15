@@ -500,9 +500,16 @@ void main_loop()
             // calc score
             if(hardness > 0.f)
             {
-                const GLfloat fscore = ((hardness * stepspeed) * 0.5f)+0.5f;
+                const GLfloat fscore = ((hardness * stepspeed) * 0.3f)+0.5f;
                 rscore = (uint)fscore;
-                if(rscore >= 10)
+                if(rscore == 0)
+                {
+                    char strts[16];
+                    timestamp(&strts[0]);
+                    printf("[%s] ~~ PENALTY YOU FAILED TO KNOCK DOWN ANY PINS ~~\n", strts);
+                    penalty++;
+                }
+                else if(rscore >= 10)
                 {
                     rscore = 20;
                     char strts[16];
