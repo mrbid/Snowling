@@ -1,0 +1,10 @@
+[Desktop Entry]
+Encoding=UTF-8
+Name=Snowling
+Comment=A simple bowling game with a festive twist.
+StartupNotify=false
+Exec=snowling
+Icon=${SNAP}/meta/gui/snowling.png
+Terminal=true
+Type=Application
+Categories=Application;Game;ArcadeGame;
