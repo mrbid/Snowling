@@ -35,7 +35,7 @@ https://github.com/mrbid/Snowling/raw/main/snowling
 ---
 
 ### Windows Binary
-hhttps://github.com/mrbid/Snowling/raw/main/snowling.exe <br>
+https://github.com/mrbid/Snowling/raw/main/snowling.exe <br>
 https://github.com/mrbid/Snowling/raw/main/glfw3.dll
 
 ---
