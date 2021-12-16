@@ -103,9 +103,30 @@ void timestamp(char* ts)
 //*************************************
 // generation functions
 //*************************************
+void blotColour2(f32 r, f32 g, f32 b, f32 rad)
+{
+    const GLushort rci = esRand(0, dynamic_numvert-1) * 3;
+    const vec tv = (vec){dynamic_vertices[rci], dynamic_vertices[rci+1], dynamic_vertices[rci+2]};
+
+    if(tv.x > 9.6f) // not too close to spawn
+        return;
+
+    const GLushort tc = (dynamic_numvert-1)*3;
+    for(GLushort i = 0; i < tc; i += 3)
+    {
+        const vec nv = (vec){dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
+        if(vDist(tv, nv) < rad)
+        {
+            dynamic_colors[i] = r;
+            dynamic_colors[i+1] = g;
+            dynamic_colors[i+2] = b;
+        }
+    }
+}
+
 void blotColour(f32 r, f32 g, f32 b, GLushort streak)
 {
-    const GLushort rci = esRand(0, dynamic_numvert-streak) * 3;
+    const GLushort rci = esRand(0, (dynamic_numvert-1)-streak) * 3;
     for(GLushort i = 0; i < streak; i++)
     {
         dynamic_colors[rci+(i*3)] = r;
@@ -135,15 +156,30 @@ void gNewRound()
 
     // ice
     for(uint i = 0; i < 6; i++)
-        blotColour(0.f, 1.f, 1.f, 32);
+    {
+        if(esRand(0, 1000) < 500)
+            blotColour(0.f, 1.f, 1.f, 32);
+        else
+            blotColour2(0.f, 1.f, 1.f, esRandFloat(0.1f, 0.9f));
+    }
 
     // boost
     for(uint i = 0; i < 6; i++)
-        blotColour(0.50196f, 0.00000f, 0.50196f, 6);
+    {
+        if(esRand(0, 1000) < 500)
+            blotColour(0.50196f, 0.00000f, 0.50196f, 6);
+        else
+            blotColour2(0.50196f, 0.00000f, 0.50196f, esRandFloat(0.1f, 0.3f));
+    }
 
     // lava
     for(uint i = 0; i < 2; i++)
-        blotColour(0.81176f, 0.06275f, 0.12549f, 6);
+    {
+        if(esRand(0, 1000) < 500)
+            blotColour(0.81176f, 0.06275f, 0.12549f, 6);
+        else
+            blotColour2(0.81176f, 0.06275f, 0.12549f, esRandFloat(0.1f, 0.3f));
+    }
 
     // rebind
     esBind(GL_ARRAY_BUFFER, &mdlDynamic.cid, dynamic_colors, sizeof(dynamic_colors), GL_STATIC_DRAW);
@@ -155,10 +191,10 @@ uint checkCollisions()
     if(t < ccl)
         return 0;
     else
-        ccl = t + 0.1; // limit checkCollisions() execution frequency
+        ccl = t + 0.05; // limit checkCollisions() execution frequency
 
     static double tt1 = 0, tt2 = 0, tt3 = 0;
-    static const GLushort tc = dynamic_numvert*3;
+    static const GLushort tc = (dynamic_numvert-1)*3;
     for(GLushort i = 0; i < tc; i+=3)
     {
         if(t > tt1 && dynamic_colors[i] == 0.f && dynamic_colors[i+1] == 1.f && dynamic_colors[i+2] == 1.f)
