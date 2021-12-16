@@ -3,6 +3,14 @@
         December 2021
 
     A simple bowling game with a festive twist.
+
+    Niggles:
+        Speaking English I know how to spell Colour,
+        however, I also recognise Color is less to type.
+        So I use Colour and Color interchangeably.
+        I use Color in var names that will be typed a lot,
+        such as in low level code, and I use Colour in
+        higher level code where it will be typed less.
 */
 
 #include <math.h>
@@ -316,7 +324,7 @@ void rMinballRGB(f32 x, f32 y, f32 z, f32 r, f32 g, f32 b, f32 s)
     glDrawElements(GL_TRIANGLES, minball_numind, GL_UNSIGNED_SHORT, 0);
 }
 
-void rMinball(f32 x, f32 y, f32 z, f32 s)
+static inline void rMinball(f32 x, f32 y, f32 z, f32 s)
 {
     rMinballRGB(x, y, z, 1.f, 1.f, 1.f, s);
 }
@@ -356,7 +364,7 @@ void rPinSet()
 // interpolators and steppers for simulation
 //*************************************
 typedef struct { f32 y,z; } lt;
-f32 lerp(lt* a, lt* b, f32 y)
+static inline f32 lerp(lt* a, lt* b, f32 y)
 {
     return a->z + (((y - a->y) / (b->y - a->y)) * (b->z - a->z));
 }
