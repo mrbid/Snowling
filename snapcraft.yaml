@@ -1,6 +1,6 @@
 name: snowling
 base: core20
-version: '1.0'
+version: '1.01'
 summary: A simple bowling game with a festive twist.
 description: |
   The premise is simple; you must launch the snowball at the pins and knock them down, seems easy right? Well, your snowball wont knock any pins down unless you roll over some ice first to harden it up. There are three obstacles in the game:
