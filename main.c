@@ -71,15 +71,15 @@ ESModel mdlMinball;
 uint bindstate = 0;
 
 // simulation / game vars
-GLfloat stepspeed = 0.f;
-GLfloat hardness = 0.f;
-uint ground = 0;
-uint score = 0;
-uint rscore = 0;
-uint penalty = 0;
-uint state = 0;
-double s0lt = 0;
-vec bp;
+uint ground = 0; // current round number
+uint score = 0; // total score
+uint rscore = 0; // round score
+uint penalty = 0; // penalty count
+uint state = 0; // game state
+double s0lt = 0; // time offset controls ball swing offset
+vec bp; // ball position
+GLfloat stepspeed = 0.f; // ball speed
+GLfloat hardness = 0.f; // ball hardness
 
 
 //*************************************
@@ -149,8 +149,7 @@ uint checkCollisions()
         ccl = t + 0.1; // limit checkCollisions() execution frequency
 
     static double tt1 = 0, tt2 = 0, tt3 = 0;
-    
-    const GLushort tc = dynamic_numvert*3;
+    static const GLushort tc = dynamic_numvert*3;
     for(GLushort i = 0; i < tc; i+=3)
     {
         if(t > tt1 && dynamic_colors[i] == 0.f && dynamic_colors[i+1] == 1.f && dynamic_colors[i+2] == 1.f)
@@ -205,13 +204,19 @@ void rSkyPlane()
 {
     bindstate = 0;
 
-    mIdent(&model);
-    mTranslate(&model, -40.f, 0.f, 0.f);
-    mRotY(&model, -90.f*DEG2RAD);
-    mRotX(&model, -90.f*DEG2RAD);
-    mScale(&model, 40.f*aspect, 23.f*aspect, 0);
+    static mat skyplane_model = {0.f};
+    static GLfloat la = 0;
+    if(skyplane_model.m[0][0] == 0.f || la != aspect)
+    {
+        mIdent(&skyplane_model);
+        mTranslate(&skyplane_model, -40.f, 0.f, 0.f);
+        mRotY(&skyplane_model, -90.f*DEG2RAD);
+        mRotX(&skyplane_model, -90.f*DEG2RAD);
+        mScale(&skyplane_model, 40.f*aspect, 23.f*aspect, 0);
+        la = aspect;
+    }
 
-    mMul(&modelview, &model, &view);
+    mMul(&modelview, &skyplane_model, &view);
 
     glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*)&projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*)&modelview.m[0][0]);
