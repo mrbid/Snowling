@@ -40,9 +40,6 @@ GLfloat sens_mul = 0.2f;
 double ww, wh, ww2, wh2;
 double uw, uh, uw2, uh2; // normalised pixel dpi
 
-// mouse input
-double x=0, y=0, sx=0, sy=0;
-
 // render state id's
 GLint projection_id;
 GLint modelview_id;
@@ -625,7 +622,7 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     const GLFWvidmode* desktop = glfwGetVideoMode(glfwGetPrimaryMonitor());
-    glfwSetWindowPos(window, ((desktop->width-sx)/2)-(winw/2), ((desktop->height-sy)/2)-(winh/2)); // center window on desktop
+    glfwSetWindowPos(window, (desktop->width/2)-(winw/2), (desktop->height/2)-(winh/2)); // center window on desktop
     glfwSetWindowSizeCallback(window, window_size_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwMakeContextCurrent(window);
