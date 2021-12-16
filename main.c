@@ -12,6 +12,7 @@
 #include <time.h>
 
 #define uint unsigned int
+#define f32 GLfloat
 
 #include "gl.h"
 #define GLFW_INCLUDE_NONE
@@ -34,9 +35,9 @@ GLFWwindow* window;
 uint winw = 1024;
 uint winh = 768;
 double t = 0;
-GLfloat aspect;
-GLfloat sens = 0.3f;
-GLfloat sens_mul = 0.2f;
+f32 aspect;
+f32 sens = 0.3f;
+f32 sens_mul = 0.2f;
 double ww, wh, ww2, wh2;
 double uw, uh, uw2, uh2; // normalised pixel dpi
 
@@ -71,15 +72,15 @@ ESModel mdlMinball;
 uint bindstate = 0;
 
 // simulation / game vars
-uint ground = 0; // current round number
-uint score = 0; // total score
-uint rscore = 0; // round score
-uint penalty = 0; // penalty count
-uint state = 0; // game state
-double s0lt = 0; // time offset controls ball swing offset
-vec bp; // ball position
-GLfloat stepspeed = 0.f; // ball speed
-GLfloat hardness = 0.f; // ball hardness
+uint ground = 0;        // current round number
+uint score = 0;         // total score
+uint rscore = 0;        // round score
+uint penalty = 0;       // penalty count
+uint state = 0;         // game state
+double s0lt = 0;        // time offset controls ball swing offset
+vec bp;                 // ball position
+f32 stepspeed = 0.f;    // ball speed
+f32 hardness = 0.f;     // ball hardness
 
 
 //*************************************
@@ -94,7 +95,7 @@ void timestamp(char* ts)
 //*************************************
 // generation functions
 //*************************************
-void blotColour(GLfloat r, GLfloat g, GLfloat b, GLushort streak)
+void blotColour(f32 r, f32 g, f32 b, GLushort streak)
 {
     const GLushort rci = esRand(0, dynamic_numvert-streak) * 3;
     for(GLushort i = 0; i < streak; i++)
@@ -205,7 +206,7 @@ void rSkyPlane()
     bindstate = 0;
 
     static mat skyplane_model = {0.f};
-    static GLfloat la = 0;
+    static f32 la = 0;
     if(skyplane_model.m[0][0] == 0.f || la != aspect)
     {
         mIdent(&skyplane_model);
@@ -218,8 +219,8 @@ void rSkyPlane()
 
     mMul(&modelview, &skyplane_model, &view);
 
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*)&projection.m[0][0]);
-    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*)&modelview.m[0][0]);
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*)&projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*)&modelview.m[0][0]);
 
     glBindBuffer(GL_ARRAY_BUFFER, mdlPlane.tid);
     glVertexAttribPointer(texcoord_id, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -241,8 +242,8 @@ void rStaticScene()
 {
     bindstate = 0;
 
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
-    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &view.m[0][0]);
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
     glUniform1f(opacity_id, 1.0f);
 
@@ -267,8 +268,8 @@ void rDynamicScene()
 {
     bindstate = 0;
 
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
-    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &view.m[0][0]);
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
     glUniform1f(opacity_id, 1.0f);
 
@@ -289,7 +290,7 @@ void rDynamicScene()
     glDrawElements(GL_TRIANGLES, dynamic_numind, GL_UNSIGNED_SHORT, 0);
 }
 
-void rMinballRGB(GLfloat x, GLfloat y, GLfloat z, GLfloat r, GLfloat g, GLfloat b, GLfloat s)
+void rMinballRGB(f32 x, f32 y, f32 z, f32 r, f32 g, f32 b, f32 s)
 {
     mIdent(&model);
     mTranslate(&model, x, y, z);
@@ -297,8 +298,8 @@ void rMinballRGB(GLfloat x, GLfloat y, GLfloat z, GLfloat r, GLfloat g, GLfloat 
         mScale(&model, s, s, s);
     mMul(&modelview, &model, &view);
 
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (GLfloat*) &projection.m[0][0]);
-    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (GLfloat*) &modelview.m[0][0]);
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
+    glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &modelview.m[0][0]);
     glUniform3f(color_id, r, g, b);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
     glUniform1f(opacity_id, 1.0f);
@@ -315,12 +316,12 @@ void rMinballRGB(GLfloat x, GLfloat y, GLfloat z, GLfloat r, GLfloat g, GLfloat 
     glDrawElements(GL_TRIANGLES, minball_numind, GL_UNSIGNED_SHORT, 0);
 }
 
-void rMinball(GLfloat x, GLfloat y, GLfloat z, GLfloat s)
+void rMinball(f32 x, f32 y, f32 z, f32 s)
 {
     rMinballRGB(x, y, z, 1.f, 1.f, 1.f, s);
 }
 
-void rPin(GLfloat x, GLfloat y, GLfloat z, uint down)
+void rPin(f32 x, f32 y, f32 z, uint down)
 {
     if(down == 1)
     {
@@ -354,13 +355,13 @@ void rPinSet()
 //*************************************
 // interpolators and steppers for simulation
 //*************************************
-typedef struct { GLfloat y,z; } lt;
-GLfloat lerp(lt* a, lt* b, float y)
+typedef struct { f32 y,z; } lt;
+f32 lerp(lt* a, lt* b, f32 y)
 {
     return a->z + (((y - a->y) / (b->y - a->y)) * (b->z - a->z));
 }
 
-GLfloat getHeight(GLfloat y)
+f32 getHeight(f32 y)
 {
     static lt hlt[25];
 
@@ -402,7 +403,7 @@ GLfloat getHeight(GLfloat y)
     return -1.f; // bad times if this happens
 }
 
-static inline GLfloat smoothStepN(float v)
+static inline f32 smoothStepN(f32 v)
 {
     return v * v * (3.f - 2.f * v);
 }
@@ -423,7 +424,7 @@ void main_loop()
 //*************************************
 // camera control
 //*************************************
-    static GLfloat camdist = -15.f;
+    static f32 camdist = -15.f;
     mIdent(&view);
     mTranslate(&view, 0.f, -0.5f, camdist);
     mRotate(&view, 80 * DEG2RAD, 1.f, 0.f, 0.f);
@@ -453,7 +454,7 @@ void main_loop()
 
     // simulate the blowing snowball & transition the game states
     static double s1lt = 0;
-    static GLfloat x = 10.5f; 
+    static f32 x = 10.5f; 
 
     if(state == 0)
     {
@@ -463,15 +464,15 @@ void main_loop()
         }
         else
         {
-            const GLfloat ddt = stepspeed * dt;
+            const f32 ddt = stepspeed * dt;
             x -= ddt;
             camdist += ddt;
             if(x <= -1.f)
                 state = 1;
 
-            const GLfloat h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
+            const f32 h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
 
-            GLfloat ns = (10.5f-x)*0.4f;
+            f32 ns = (10.5f-x)*0.4f;
             if(ns < 1.f)
                 ns = 1.f;
 
@@ -493,7 +494,7 @@ void main_loop()
             // calc score
             if(hardness > 0.f)
             {
-                const GLfloat fscore = ((hardness * stepspeed) * 0.3f)+0.5f;
+                const f32 fscore = ((hardness * stepspeed) * 0.3f)+0.5f;
                 rscore = (uint)fscore;
                 if(rscore == 0)
                 {
@@ -593,7 +594,7 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     winh = height;
 
     glViewport(0, 0, winw, winh);
-    aspect = (GLfloat)winw / (GLfloat)winh;
+    aspect = (f32)winw / (f32)winh;
     ww = winw;
     wh = winh;
     ww2 = ww/2;
@@ -657,10 +658,10 @@ int main(int argc, char** argv)
 //*************************************
 
     // ***** BIND SKY PLANE *****
-    GLfloat  plane_vert[] = {1.000000,-1.000000,0.000000,-1.000000,1.000000,0.000000,-1.000000,-1.000000,0.000000,1.000000,1.000000,0.000000};
+    f32  plane_vert[] = {1.000000,-1.000000,0.000000,-1.000000,1.000000,0.000000,-1.000000,-1.000000,0.000000,1.000000,1.000000,0.000000};
     GLushort plane_indi[] = {0,1,2,0,3,1};
     esBindModel(&mdlPlane, plane_vert, 9, plane_indi, 6);
-    GLfloat plane_texc[] = {1.f,1.f, 0.f,0.f, 0.f,1.f, 1.f,0.f};
+    f32 plane_texc[] = {1.f,1.f, 0.f,0.f, 0.f,1.f, 1.f,0.f};
     esBind(GL_ARRAY_BUFFER, &mdlPlane.tid, plane_texc, sizeof(plane_texc), GL_STATIC_DRAW);
     tex_skyplane = esLoadTexture(alpinebg.width, alpinebg.height, &alpinebg.pixel_data[0]);
 
