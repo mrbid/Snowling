@@ -400,15 +400,6 @@ GLfloat getHeight(GLfloat y)
     return -1.f; // bad times if this happens
 }
 
-GLfloat smoothStep(float a, float b, float i)
-{
-    // og smooth step
-    if(i <= a){return 0.0f;}
-    if(i >= b){return 1.0f;}
-    const float v = i - a / b - a;
-    return v * v * (3.f - 2.f * v);
-}
-
 static inline GLfloat smoothStepN(float v)
 {
     return v * v * (3.f - 2.f * v);
@@ -449,7 +440,6 @@ void main_loop()
     shadeFullbrightT(&position_id, &projection_id, &modelview_id, &texcoord_id, &sampler_id);
     rSkyPlane();
 
-
     // render static and dynamic scenes
     shadeLambert3(&position_id, &projection_id, &modelview_id, &lightpos_id, &normal_id, &color_id, &opacity_id);
     rStaticScene();
@@ -489,6 +479,7 @@ void main_loop()
             bp.y = h-0.017f;
             bp.z = getHeight(h);
             rMinballRGB(bp.x, bp.y, bp.z, 1.f-(hardness*0.22f), 1.f, 1.f, ns);
+
             if(checkCollisions() == 3)
                 state = 2;
         }
@@ -694,9 +685,7 @@ int main(int argc, char** argv)
 
     // makeAllShaders();
     makeLambert();
-    // makeLambert1();
     makeLambert3();
-    // makeFullbright();
     makeFullbrightT();
 
 //*************************************
@@ -719,23 +708,11 @@ int main(int argc, char** argv)
     t = glfwGetTime();
 
     // event loop
-    //double lt = glfwGetTime() + 16, fc = 0;
     while(!glfwWindowShouldClose(window))
     {
         t = glfwGetTime();
-
         glfwPollEvents();
         main_loop();
-        
-        // fc++;
-        // if(t > lt)
-        // {
-        //     char strts[16];
-        //     timestamp(&strts[0]);
-        //     printf("[%s] FPS: %f\n", strts, fc/16);
-        //     fc = 0;
-        //     lt = t + 16;
-        // }
     }
 
     // done
