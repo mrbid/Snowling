@@ -608,9 +608,9 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     //if(key == GLFW_KEY_SPACE){state = 2;}
 
     // speed selector
-    if(key == GLFW_KEY_TAB && action == GLFW_PRESS)
+    if((key == GLFW_KEY_TAB || key == GLFW_KEY_SPACE) && action == GLFW_PRESS)
         tab = 1;
-    else if(key == GLFW_KEY_TAB && action == GLFW_RELEASE)
+    else if((key == GLFW_KEY_TAB || key == GLFW_KEY_SPACE) && action == GLFW_RELEASE)
         tab = 0;
 
     if(tab == 1)
@@ -720,7 +720,7 @@ int main(int argc, char** argv)
     printf("Boost (color: Purple)\n - Increases the speed of your snowball to blow a heavier punch on the pins.\n\n");
     printf("Lava (color: Red)\n - Melts your snowball; instant penalty.\n\n");
     printf("Key Bindings:\n");
-    printf(" - [TAB + 0-9] Select launch speed.\n");
+    printf(" - [TAB/SPACE + 0-9] Select launch speed.\n");
     printf(" - [0-9] Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.\n");
     printf(" - [R] Launch ball at a random angle and speed.\n");
     printf(" - [Left, Right, Up, Down] Launch ball at four quick selection angles and speeds.\n\n");
