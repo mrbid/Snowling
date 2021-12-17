@@ -491,15 +491,24 @@ void main_loop()
                 {
                     if(buttons[0] == GLFW_PRESS)
                     {
-                        s0lt = t - (axes[0]+1.f)*PI;
                         stepspeed = 0.5f + (((axes[1]*-1.f)+1.f)*0.5f)*4.5f;
-                        //printf("L: %f %f\n", stepspeed, (axes[0]+1.f)*PI);
+
+                        if(axes[0] < -0.75f)
+                            s0lt = t - 3.769911289f;
+                        else if(axes[0] > 0.75f)
+                            s0lt = t - 0.6283185482f;
+                        if(axes[0] < 0.f)
+                            s0lt = t - PI;
+                        else if(axes[0] >= 0.f)
+                            s0lt = t;
+
+                        printf("a: %f\n", axes[0]);
                         bt = t + 0.3f;
                     }
                     else if(buttons[1] == GLFW_PRESS)
                     {
-                        stepspeed = 0.5f + randf()*6.f; // 1.5f higher possible speed with random
                         s0lt = t - randf()*x2PI;
+                        stepspeed = 0.5f + (((axes[1]*-1.f)+1.f)*0.5f)*4.5f;
                         bt = t + 0.3f;
                     }
                 }
