@@ -601,30 +601,85 @@ void main_loop()
 //*************************************
 static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-    if(action != GLFW_PRESS){return;}
+    static uint tab = 0;
+    static f32 ls = 3.f;
 
-    if(stepspeed == 0.f)
+    // debug reset
+    //if(key == GLFW_KEY_SPACE){state = 2;}
+
+    // speed selector
+    if(key == GLFW_KEY_TAB && action == GLFW_PRESS)
+        tab = 1;
+    else if(key == GLFW_KEY_TAB && action == GLFW_RELEASE)
+        tab = 0;
+
+    if(tab == 1)
     {
-        if(key == GLFW_KEY_0){ stepspeed = 0.5f; s0lt = t - 1.1f; }
-        if(key == GLFW_KEY_1){ stepspeed = 1.0f; s0lt = t - 8.2f; }
-        if(key == GLFW_KEY_2){ stepspeed = 1.5f; s0lt = t - 3.3f; }
-        if(key == GLFW_KEY_3){ stepspeed = 2.0f; s0lt = t - 6.4f; }
-        if(key == GLFW_KEY_4){ stepspeed = 2.5f; s0lt = t - 5.5f; }
-        if(key == GLFW_KEY_5){ stepspeed = 3.0f; s0lt = t - 4.6f; }
-        if(key == GLFW_KEY_6){ stepspeed = 3.5f; s0lt = t - 7.7f; }
-        if(key == GLFW_KEY_7){ stepspeed = 4.0f; s0lt = t - 2.8f; }
-        if(key == GLFW_KEY_8){ stepspeed = 4.5f; s0lt = t - 9.9f; }
-        if(key == GLFW_KEY_9){ stepspeed = 5.0f; s0lt = t; }
+        if(key == GLFW_KEY_1)
+            ls = 0.5f;
+        else if(key == GLFW_KEY_2)
+            ls = 1.0f;
+        else if(key == GLFW_KEY_3)
+            ls = 1.5f;
+        else if(key == GLFW_KEY_4)
+            ls = 2.0f;
+        else if(key == GLFW_KEY_5)
+            ls = 2.5f;
+        else if(key == GLFW_KEY_6)
+            ls = 3.0f;
+        else if(key == GLFW_KEY_7)
+            ls = 3.5f;
+        else if(key == GLFW_KEY_8)
+            ls = 4.0f;
+        else if(key == GLFW_KEY_9)
+            ls = 4.5f;
+        else if(key == GLFW_KEY_0)
+            ls = 5.0f;
+        
+        static f32 lls = 0.f;
+        if(lls != ls)
+        {
+            char strts[16];
+            timestamp(&strts[0]);
+            printf("[%s] Launch Speed: %.1f\n", strts, ls);
+            lls = ls;
+        }
+    }
 
+    // launchers
+    if(stepspeed == 0.f && tab == 0)
+    {
+        // center
+        if(key == GLFW_KEY_5){ stepspeed = ls; s0lt = t - PI; }
+        if(key == GLFW_KEY_6){ stepspeed = ls; s0lt = t; }
+
+        // inner
+        if(key == GLFW_KEY_4){ stepspeed = ls; s0lt = t - (0.6283185482f * 4.0f); }
+        if(key == GLFW_KEY_7){ stepspeed = ls; s0lt = t - (0.6283185482f * 9.0f); }
+
+        // just off center
+        if(key == GLFW_KEY_3){ stepspeed = ls; s0lt = t - (0.6283185482f * 6.0f); }
+        if(key == GLFW_KEY_8){ stepspeed = ls; s0lt = t - 0.6283185482f; }
+
+        // wide center
+        if(key == GLFW_KEY_2){ stepspeed = ls; s0lt = t - (0.6283185482f * 7.0f); }
+        if(key == GLFW_KEY_9){ stepspeed = ls; s0lt = t - (0.6283185482f * 2.0f); }
+
+        // super wide
+        if(key == GLFW_KEY_1){ stepspeed = ls; s0lt = t - (0.6283185482f * 8.0f); }
+        if(key == GLFW_KEY_0){ stepspeed = ls; s0lt = t - (0.6283185482f * 3.0f); }
+
+        // simple
         if(key == GLFW_KEY_LEFT) { stepspeed = 1.5f; s0lt = t - 3.3f; }
         if(key == GLFW_KEY_RIGHT){ stepspeed = 1.5f; s0lt = t - 6.4f; }
         if(key == GLFW_KEY_UP)   { stepspeed = 4.5f; s0lt = t - 9.9f; }
         if(key == GLFW_KEY_DOWN) { stepspeed = 4.5f; s0lt = t; }
 
+        // random
         if(key == GLFW_KEY_R) 
         {
-            stepspeed = 0.5f + randf()*6.f;
-            s0lt = t - randf()*60.f;
+            stepspeed = 0.5f + randf()*6.f; // 1.5f higher possible speed with random
+            s0lt = t - randf()*x2PI;
         }
     }
 
@@ -658,7 +713,18 @@ void window_size_callback(GLFWwindow* window, int width, int height)
 int main(int argc, char** argv)
 {
     // help
-    printf("Snowling, A simple bowling game with a festive twist.\nJames William Fletcher (james@voxdsp.com)\n\n");
+    printf("Snowling, A simple bowling game with a festive twist.\n");
+    printf("James William Fletcher (james@voxdsp.com)\n\n");
+    printf("The premise is simple; you must launch the snowball at the pins and knock them down, seems easy right? Well, your snowball wont knock any pins down unless you roll over some ice first to harden it up. There are three obstacles in the game:\n\n");
+    printf("Ice (color: Aqua)\n - Hardens your snowball to pack a heavier punch on the pins.\n\n");
+    printf("Boost (color: Purple)\n - Increases the speed of your snowball to blow a heavier punch on the pins.\n\n");
+    printf("Lava (color: Red)\n - Melts your snowball; instant penalty.\n\n");
+    printf("Key Bindings:\n");
+    printf(" - [TAB + 0-9] Select launch speed.\n");
+    printf(" - [0-9] Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.\n");
+    printf(" - [R] Launch ball at a random angle and speed.\n");
+    printf(" - [Left, Right, Up, Down] Launch ball at four quick selection angles and speeds.\n\n");
+    printf("I tend to just use [UP, DOWN, LEFT, RIGHT] and [R] when I play, but if you are competitive you will want to get accustomed with using [TAB + 0-9] & [0-9].\n\n");
 
     // init glfw
     if(!glfwInit()){exit(EXIT_FAILURE);}
