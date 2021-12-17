@@ -11,11 +11,13 @@ The premise is simple; you must launch the snowball at the pins and knock them d
 At the moment you can only play this game with a keyboard. _May add Joypad support if requested._
 
 **Key Bindings:**
-* **0-9** - Launch ball at one of 10 different angles and speeds.
+* **TAB + 0-9** - Select launch speed.
+* **0-9** - Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.
 * **R** - Launch ball at a random angle and speed.
 * **Left, Right, Up, Down** - Launch ball at four quick selection angles and speeds.
 
-I tend to just use **UP, DOWN, LEFT, RIGHT** and **R** when I play, but if you are competitive you will want to get accustomed with using 0-9.
+I tend to just use **UP, DOWN, LEFT, RIGHT** and **R** when I play, but if you are competitive you will want to get accustomed with using TAB + 0-9.
+
 
 **Video:** https://www.youtube.com/watch?v=RN6lRq4bKWk
 
