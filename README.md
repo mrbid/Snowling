@@ -8,7 +8,7 @@ The premise is simple; you must launch the snowball at the pins and knock them d
 * Boost _(color: Purple)_ - Increases the speed of your snowball to blow a heavier punch on the pins.
 * Lava _(color: Red)_ - Melts your snowball; instant penalty.
 
-At the moment you can only play this game with a keyboard. _May add Joypad support if requested._
+At the moment you can only play this game with a keyboard. _(Kind of has a Joystick system, but it's not good, and you need to compile from source for it)_
 
 **Key Bindings:**
 * `TAB/SPACE + 0-9` - Select launch speed.
