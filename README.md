@@ -16,6 +16,12 @@ It's best to play with your keyboard but Joystick is also supported.
 * `R` - Launch ball at a random angle and speed.
 * `Left, Right, Up, Down` - Launch ball at four quick selection angles and speeds.
 
+**Joypad Bindings:**
+* `Stick 1 - Left to Right` - Launch Angle
+* `Stick 1 - Up and Down` - Launch Speed
+* `Button 1` - Launch
+* `Button 2` - Random Launch
+
 I tend to just use `UP, DOWN, LEFT, RIGHT` and `R` when I play, but if you are competitive you will want to get accustomed with using `SPACE + 0-9` & `0-9`.
 
 ---
