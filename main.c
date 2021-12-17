@@ -475,6 +475,39 @@ void main_loop()
     mRotate(&view, 90 * DEG2RAD, 0.f, 0.f, 1.f);
 
 //*************************************
+// joystick control
+//*************************************
+    if(glfwJoystickPresent(GLFW_JOYSTICK_1) == 1 && stepspeed == 0.f)
+    {
+        int count;
+        const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
+        if(count >= 2)
+        {
+            static float bt = 0;
+            if(t > bt)
+            {
+                const unsigned char* buttons = glfwGetJoystickButtons(GLFW_JOYSTICK_1, &count);
+                if(count >= 2)
+                {
+                    if(buttons[0] == GLFW_PRESS)
+                    {
+                        s0lt = t - (axes[0]+1.f)*PI;
+                        stepspeed = 0.5f + (((axes[1]*-1.f)+1.f)*0.5f)*4.5f;
+                        //printf("L: %f %f\n", stepspeed, (axes[0]+1.f)*PI);
+                        bt = t + 0.3f;
+                    }
+                    else if(buttons[1] == GLFW_PRESS)
+                    {
+                        stepspeed = 0.5f + randf()*6.f; // 1.5f higher possible speed with random
+                        s0lt = t - randf()*x2PI;
+                        bt = t + 0.3f;
+                    }
+                }
+            }
+        }
+    }
+
+//*************************************
 // begin render
 //*************************************
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -683,6 +716,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         }
     }
 
+    // quit
     if(key == GLFW_KEY_ESCAPE)
         glfwSetWindowShouldClose(window, GLFW_TRUE);
 }
@@ -719,6 +753,11 @@ int main(int argc, char** argv)
     printf("Ice (color: Aqua)\n - Hardens your snowball to pack a heavier punch on the pins.\n\n");
     printf("Boost (color: Purple)\n - Increases the speed of your snowball to blow a heavier punch on the pins.\n\n");
     printf("Lava (color: Red)\n - Melts your snowball; instant penalty.\n\n");
+    printf("Joypad Bindings:\n");
+    printf(" - [Stick 1 - Left to Right] Launch Angle\n");
+    printf(" - [Stick 1 - Up and Down] Launch Speed\n");
+    printf(" - [Button 1] Launch\n");
+    printf(" - [Button 2] Random Launch\n\n");
     printf("Key Bindings:\n");
     printf(" - [TAB/SPACE + 0-9] Select launch speed.\n");
     printf(" - [0-9] Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.\n");
