@@ -497,12 +497,11 @@ void main_loop()
                             s0lt = t - 3.769911289f;
                         else if(axes[0] > 0.75f)
                             s0lt = t - 0.6283185482f;
-                        if(axes[0] < 0.f)
+                        else if(axes[0] < 0.f)
                             s0lt = t - PI;
                         else if(axes[0] >= 0.f)
                             s0lt = t;
 
-                        printf("a: %f\n", axes[0]);
                         bt = t + 0.3f;
                     }
                     else if(buttons[1] == GLFW_PRESS)
