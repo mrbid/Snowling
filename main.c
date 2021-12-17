@@ -100,6 +100,28 @@ void timestamp(char* ts)
     strftime(ts, 16, "%H:%M:%S", localtime(&tt));
 }
 
+float aliased_sin(const float theta)
+{
+    // source; James William Fletcher; this should be accurate to three decimal places
+    // https://gist.github.com/mrbid/1f25bfc27d97b81d5d9ec5e45f81a6e1
+
+    // data for the wavetable
+    static int init = 0;
+    static float sine_wtable[65536] = {0};
+
+    // called once on first execution
+    if(init == 0)
+    {
+        for(int i = 0; i < 65536; i++)
+            sine_wtable[i] = sin(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
+        init = 1;
+    }
+
+    // return result
+    const unsigned short i = (unsigned short)(10430.37793f * theta); // 10430.37793f = 65536.f / x2PIf
+    return sine_wtable[i];
+}
+
 //*************************************
 // generation functions
 //*************************************
@@ -555,7 +577,7 @@ void main_loop()
             if(x <= -1.f)
                 state = 1;
 
-            const f32 h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
+            const f32 h = aliased_sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
 
             f32 ns = (10.5f-x)*0.4f;
             if(ns < 1.f)
