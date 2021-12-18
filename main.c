@@ -462,7 +462,7 @@ void main_loop()
 //*************************************
 // joystick control
 //*************************************
-    if(glfwJoystickPresent(GLFW_JOYSTICK_1) == 1 && stepspeed == 0.f)
+    if(stepspeed == 0.f && glfwJoystickPresent(GLFW_JOYSTICK_1) == 1)
     {
         int count;
         const float* axes = glfwGetJoystickAxes(GLFW_JOYSTICK_1, &count);
