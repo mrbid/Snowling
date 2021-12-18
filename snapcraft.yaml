@@ -33,6 +33,14 @@ apps:
   snowling:
     extensions: [gnome-3-38]
     command: snowling
+    plugs:
+    - desktop
+    - desktop-legacy
+    - gsettings
+    - opengl
+    - wayland
+    - x11
+    - joystick
 
 parts:
   snowling:
