@@ -11,6 +11,16 @@
         I use Color in var names that will be typed a lot,
         such as in low level code, and I use Colour in
         higher level code where it will be typed less.
+
+    Also ignoring reverse rendering of closest to farthest
+    objects because the gains are so minimal in this asset
+    set. Depth buffer culling gains almost non-existant.
+
+    Could probably also optimise the camera orientation
+    matrix transformations. But again, small fish.
+
+    I don't think I've missed any other opportunities I
+    have not listed above.
 */
 
 #include <math.h>
@@ -862,7 +872,7 @@ int main(int argc, char** argv)
 
 
 //*************************************
-// compile & link shader program
+// compile & link shader programs
 //*************************************
 
     // makeAllShaders();
