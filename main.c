@@ -47,7 +47,7 @@
 // #define LEAK_CHECK_BRUTE
 // #define AUTOMATE
 #ifdef LEAK_CHECK
-    const uint mlc = dynamic_numvert*3;
+    const GLushort mlc = dynamic_numvert*3;
 #endif
 
 //*************************************
