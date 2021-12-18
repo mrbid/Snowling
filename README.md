@@ -80,8 +80,11 @@ sudo make install /usr/bin
 
 ### Debug
 `clang -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined -g main.c glad_gl.c -Ofast -lglfw -lm -o snowling`
+
 `valgrind snowling`
+
 `strace snowling`
+
 ```
 #define LEAK_CHECK
 #define LEAK_CHECK_BRUTE
