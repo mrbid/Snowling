@@ -16,9 +16,6 @@
     objects because the gains are so minimal in this asset
     set. Depth buffer culling gains almost non-existant.
 
-    Could probably also optimise the camera orientation
-    matrix transformations. But again, small fish.
-
     I don't think I've missed any other opportunities I
     have not listed above.
 */
@@ -77,6 +74,7 @@ mat projection;
 mat view;
 mat model;
 mat modelview;
+mat viewrot;
 
 // render state inputs
 vec lightpos = {0.f, 7.f, 0.f};
@@ -110,25 +108,10 @@ void timestamp(char* ts)
     strftime(ts, 16, "%H:%M:%S", localtime(&tt));
 }
 
-float aliased_sin(const float theta)
+float sine_wtable[65536] = {0};
+static inline float aliased_sin(const float theta)
 {
-    // source; James William Fletcher; this should be accurate to three decimal places
-    // https://gist.github.com/mrbid/1f25bfc27d97b81d5d9ec5e45f81a6e1
-
-    // data for the wavetable
-    static int init = 0;
-    static float sine_wtable[65536] = {0};
-
-    // called once on first execution
-    if(init == 0)
-    {
-        for(int i = 0; i < 65536; i++)
-            sine_wtable[i] = sin(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
-        init = 1;
-    }
-
-    // return result
-    const unsigned short i = (unsigned short)(10430.37793f * theta); // 10430.37793f = 65536.f / x2PIf
+    const unsigned short i = (unsigned short)(10430.37793f * theta);
     return sine_wtable[i];
 }
 
@@ -437,39 +420,9 @@ static inline f32 lerp(lt* a, lt* b, f32 y)
     return a->z + (((y - a->y) / (b->y - a->y)) * (b->z - a->z));
 }
 
+lt hlt[25];
 f32 getHeight(f32 y)
 {
-    static lt hlt[25];
-
-    if(hlt[0].z == 0.f)
-    {
-        hlt[0].y = 0;         hlt[0].z = 0.016813;
-        hlt[1].y = 0.102108;  hlt[1].z = 0.018762;
-        hlt[2].y = 0.191487;  hlt[2].z = 0.024604;
-        hlt[3].y = 0.280097;  hlt[3].z = 0.034311;
-        hlt[4].y = 0.367561;  hlt[4].z = 0.047843;
-        hlt[5].y = 0.453504;  hlt[5].z = 0.065142;
-        hlt[6].y = 0.537558;  hlt[6].z = 0.086133;
-        hlt[7].y = 0.619362;  hlt[7].z = 0.110728;
-        hlt[8].y = 0.698569;  hlt[8].z = 0.138821;
-        hlt[9].y = 0.774836;  hlt[9].z = 0.170289;
-        hlt[10].y = 0.847838; hlt[10].z = 0.205001;
-        hlt[11].y = 0.917262; hlt[11].z = 0.242807;
-        hlt[12].y = 0.982812; hlt[12].z = 0.283543;
-        hlt[13].y = 1.04421;  hlt[13].z = 0.327039;
-        hlt[14].y = 1.10118;  hlt[14].z = 0.373106;
-        hlt[15].y = 1.15349;  hlt[15].z = 0.421545;
-        hlt[16].y = 1.20092;  hlt[16].z = 0.472152;
-        hlt[17].y = 1.24325;  hlt[17].z = 0.524709;
-        hlt[18].y = 1.28032;  hlt[18].z = 0.57899;
-        hlt[19].y = 1.31195;  hlt[19].z = 0.634764;
-        hlt[20].y = 1.33803;  hlt[20].z = 0.69179;
-        hlt[21].y = 1.35843;  hlt[21].z = 0.749827;
-        hlt[22].y = 1.37305;  hlt[22].z = 0.808624;
-        hlt[23].y = 1.38185;  hlt[23].z = 0.867931;
-        hlt[24].y = 1.38479;  hlt[24].z = 0.927491;
-    }
-
     y = fabs(y);
 
     for(uint i = 0; i < 24; i++)
@@ -503,8 +456,8 @@ void main_loop()
     static f32 camdist = -15.f;
     mIdent(&view);
     mTranslate(&view, 0.f, -0.5f, camdist);
-    mRotate(&view, 80 * DEG2RAD, 1.f, 0.f, 0.f);
-    mRotate(&view, 90 * DEG2RAD, 0.f, 0.f, 1.f);
+    mRotY(&view, 1.396263361f);
+    mRotZ(&view, 1.570796371f);
 
 //*************************************
 // joystick control
@@ -835,6 +788,37 @@ int main(int argc, char** argv)
 
     // seed random
     srandf(time(0));
+
+    // gen sine table
+    for(int i = 0; i < 65536; i++)
+        sine_wtable[i] = sin(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
+
+    // gen height table
+    hlt[0].y = 0;         hlt[0].z = 0.016813;
+    hlt[1].y = 0.102108;  hlt[1].z = 0.018762;
+    hlt[2].y = 0.191487;  hlt[2].z = 0.024604;
+    hlt[3].y = 0.280097;  hlt[3].z = 0.034311;
+    hlt[4].y = 0.367561;  hlt[4].z = 0.047843;
+    hlt[5].y = 0.453504;  hlt[5].z = 0.065142;
+    hlt[6].y = 0.537558;  hlt[6].z = 0.086133;
+    hlt[7].y = 0.619362;  hlt[7].z = 0.110728;
+    hlt[8].y = 0.698569;  hlt[8].z = 0.138821;
+    hlt[9].y = 0.774836;  hlt[9].z = 0.170289;
+    hlt[10].y = 0.847838; hlt[10].z = 0.205001;
+    hlt[11].y = 0.917262; hlt[11].z = 0.242807;
+    hlt[12].y = 0.982812; hlt[12].z = 0.283543;
+    hlt[13].y = 1.04421;  hlt[13].z = 0.327039;
+    hlt[14].y = 1.10118;  hlt[14].z = 0.373106;
+    hlt[15].y = 1.15349;  hlt[15].z = 0.421545;
+    hlt[16].y = 1.20092;  hlt[16].z = 0.472152;
+    hlt[17].y = 1.24325;  hlt[17].z = 0.524709;
+    hlt[18].y = 1.28032;  hlt[18].z = 0.57899;
+    hlt[19].y = 1.31195;  hlt[19].z = 0.634764;
+    hlt[20].y = 1.33803;  hlt[20].z = 0.69179;
+    hlt[21].y = 1.35843;  hlt[21].z = 0.749827;
+    hlt[22].y = 1.37305;  hlt[22].z = 0.808624;
+    hlt[23].y = 1.38185;  hlt[23].z = 0.867931;
+    hlt[24].y = 1.38479;  hlt[24].z = 0.927491;
 
 //*************************************
 // projection
