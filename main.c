@@ -42,6 +42,13 @@
 #include "dynamic.h"
 #include "minball.h"
 
+// configuration
+// #define LEAK_CHECK
+// #define LEAK_CHECK_BRUTE
+// #define AUTOMATE
+#ifdef LEAK_CHECK
+    const uint mlc = dynamic_numvert*3;
+#endif
 
 //*************************************
 // globals
@@ -121,6 +128,11 @@ static inline float aliased_sin(const float theta)
 void blotColour2(f32 r, f32 g, f32 b, f32 rad)
 {
     const GLushort rci = esRand(0, dynamic_numvert-1) * 3;
+
+#ifdef LEAK_CHECK
+    if(rci+2 >= mlc){printf("\n\nblotColour2() #0 LEAK: %u\n\n", (rci+2)-mlc); exit(0);}
+#endif
+
     const vec tv = (vec){dynamic_vertices[rci], dynamic_vertices[rci+1], dynamic_vertices[rci+2]};
 
     if(tv.x > 9.6f) // not too close to spawn
@@ -129,6 +141,10 @@ void blotColour2(f32 r, f32 g, f32 b, f32 rad)
     const GLushort tc = (dynamic_numvert-1)*3;
     for(GLushort i = 0; i < tc; i += 3)
     {
+#ifdef LEAK_CHECK
+        if(i+2 >= mlc){printf("\n\nblotColour2() #1 LEAK: %u\n\n", (i+2)-mlc); exit(0);}
+#endif
+
         const vec nv = (vec){dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
         if(vDist(tv, nv) < rad)
         {
@@ -141,9 +157,13 @@ void blotColour2(f32 r, f32 g, f32 b, f32 rad)
 
 void blotColour(f32 r, f32 g, f32 b, GLushort streak)
 {
-    const GLushort rci = esRand(0, (dynamic_numvert-1)-streak) * 3;
+    const GLushort rci = esRand(0, dynamic_numvert-1-streak) * 3;
     for(GLushort i = 0; i < streak; i++)
     {
+#ifdef LEAK_CHECK
+        if(rci+(i*3)+2 >= mlc){printf("\n\nblotColour() LEAK: %u\n\n", (rci+(i*3)+2)-mlc); exit(0);}
+#endif
+
         dynamic_colors[rci+(i*3)] = r;
         dynamic_colors[rci+(i*3)+1] = g;
         dynamic_colors[rci+(i*3)+2] = b;
@@ -198,6 +218,16 @@ void gNewRound()
 
     // rebind
     esBind(GL_ARRAY_BUFFER, &mdlDynamic.cid, dynamic_colors, sizeof(dynamic_colors), GL_STATIC_DRAW);
+
+
+#ifdef AUTOMATE
+    stepspeed = 0.5f + randf()*6.f;
+    s0lt = t - randf()*x2PI;
+#endif
+
+#ifdef LEAK_CHECK_BRUTE
+    stepspeed = 130.f;
+#endif
 }
 
 uint checkCollisions()
@@ -212,6 +242,10 @@ uint checkCollisions()
     static const GLushort tc = (dynamic_numvert-1)*3;
     for(GLushort i = 0; i < tc; i+=3)
     {
+#ifdef LEAK_CHECK
+        if(i+2 >= mlc){printf("\n\ncheckCollisions() LEAK: %u\n\n", (i+2)-mlc); exit(0);}
+#endif
+
         if(t > tt1 && dynamic_colors[i] == 0.f && dynamic_colors[i+1] == 1.f && dynamic_colors[i+2] == 1.f)
         {
             const vec cp = {dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
@@ -597,7 +631,9 @@ void main_loop()
             }
 
             // pause time between rounds
+#ifndef AUTOMATE
             s1lt = t + 3;
+#endif
         }
         if(t > s1lt)
             state = 2;
