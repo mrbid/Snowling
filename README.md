@@ -79,7 +79,9 @@ sudo make install /usr/bin
 ---
 
 ### Debug
-`clang -fno-omit-frame-pointer -fsanitize=address -fsanitize=undefined -g main.c glad_gl.c -Ofast -lglfw -lm -o snowling`
+`clang -fno-omit-frame-pointer -fsanitize=address -g main.c glad_gl.c -Ofast -lglfw -lm -o snowling`
+
+`clang -fno-omit-frame-pointer -fsanitize=undefined -g main.c glad_gl.c -Ofast -lglfw -lm -o snowling`
 
 `valgrind snowling`
 
