@@ -1,5 +1,7 @@
 **Attribution for snowling.blend:** James William Fletcher, [GPLv2](https://github.com/mrbid/Snowling/blob/main/LICENSE).
+
 ---
+
 **Attribution for skybg.jpg:** https://unsplash.com/photos/N_MXyBUV5hU
 
 License
