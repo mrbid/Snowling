@@ -99,3 +99,4 @@ sudo make install /usr/bin
 
 ### Attributions
 https://unsplash.com/photos/N_MXyBUV5hU<br>
+http://www.forrestwalter.com/icons/<br>
