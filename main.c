@@ -781,7 +781,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         if(key == GLFW_KEY_DOWN) { stepspeed = 4.5f; s0lt = t; }
 
         // random
-        if(key == GLFW_KEY_R) 
+        if(key == GLFW_KEY_R || key == GLFW_KEY_RIGHT_SHIFT) 
         {
             stepspeed = 0.5f + randf()*6.f; // 1.5f higher possible speed with random
             s0lt = t - randf()*x2PI;
@@ -825,16 +825,16 @@ int main(int argc, char** argv)
     printf("Ice (color: Aqua)\n - Hardens your snowball to pack a heavier punch on the pins.\n\n");
     printf("Boost (color: Purple)\n - Increases the speed of your snowball to blow a heavier punch on the pins.\n\n");
     printf("Lava (color: Red)\n - Melts your snowball; instant penalty.\n\n");
+    printf("Key Bindings:\n");
+    printf(" - [TAB/SPACE + 0-9] Select launch speed.\n");
+    printf(" - [0-9] Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.\n");
+    printf(" - [R/LSHIFT] Launch ball at a random angle and speed.\n");
+    printf(" - [Left, Right, Up, Down] Launch ball at four quick selection angles and speeds.\n\n");
     printf("Joypad Bindings:\n");
     printf(" - [Stick 1 - Left to Right] Launch Angle\n");
     printf(" - [Stick 1 - Up and Down] Launch Speed\n");
     printf(" - [Button 1] Launch\n");
     printf(" - [Button 2] Random Launch\n\n");
-    printf("Key Bindings:\n");
-    printf(" - [TAB/SPACE + 0-9] Select launch speed.\n");
-    printf(" - [0-9] Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.\n");
-    printf(" - [R] Launch ball at a random angle and speed.\n");
-    printf(" - [Left, Right, Up, Down] Launch ball at four quick selection angles and speeds.\n\n");
     printf("I tend to just use [UP, DOWN, LEFT, RIGHT] and [R] when I play, but if you are competitive you will want to get accustomed with using [TAB + 0-9] & [0-9].\n\n");
 
     // init glfw
