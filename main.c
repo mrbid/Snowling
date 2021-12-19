@@ -586,11 +586,11 @@ void main_loop()
             if(x <= -1.f)
                 state = 1;
 
-            #ifndef __arm__
+#ifndef __arm__
                 const f32 h = aliased_sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
-            #else
+#else
                 const f32 h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
-            #endif
+#endif
 
             f32 ns = (10.5f-x)*0.4f;
             if(ns < 1.f)
@@ -868,11 +868,11 @@ int main(int argc, char** argv)
     // seed random
     srandf(time(0));
 
-    #ifndef __arm__
+#ifndef __arm__
         // gen sine table
         for(int i = 0; i < 65536; i++)
             sine_wtable[i] = sin(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
-    #endif
+#endif
 
     // gen height table
     hlt[0].y = 0;         hlt[0].z = 0.016813;
