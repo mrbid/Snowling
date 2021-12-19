@@ -124,7 +124,7 @@ void timestamp(char* ts)
     strftime(ts, 16, "%H:%M:%S", localtime(&tt));
 }
 
-#ifndef __arm__
+#ifdef __x86_64__ 
 float sine_wtable[65536] = {0};
 static inline float aliased_sin(const float theta)
 {
@@ -586,7 +586,7 @@ void main_loop()
             if(x <= -1.f)
                 state = 1;
 
-#ifndef __arm__
+#ifdef __x86_64__ 
                 const f32 h = aliased_sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
 #else
                 const f32 h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
@@ -868,7 +868,7 @@ int main(int argc, char** argv)
     // seed random
     srandf(time(0));
 
-#ifndef __arm__
+#ifdef __x86_64__ 
         // gen sine table
         for(int i = 0; i < 65536; i++)
             sine_wtable[i] = sin(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
