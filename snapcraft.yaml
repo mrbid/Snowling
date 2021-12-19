@@ -13,7 +13,7 @@ description: |
   **Key Bindings:**
   * **TAB/SPACE + 0-9** - Select launch speed.
   * **0-9** - Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.
-  * **R** - Launch ball at a random angle and speed.
+  * **R/LSHIFT** - Launch ball at a random angle and speed.
   * **Left, Right, Up, Down** - Launch ball at four quick selection angles and speeds.
   
   **Joypad Bindings:**
