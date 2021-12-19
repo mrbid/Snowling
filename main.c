@@ -18,6 +18,13 @@
 
     I don't think I've missed any other opportunities I
     have not listed above.
+
+    Notes:
+        Looks like the aliased_sin() trick doesn't work
+        on ARM - causes a buffer overrun and subsequent
+        segfault. Food for thought, also annoying, because
+        I only added the optimisation with the intention
+        of low end hardware like ARM benefiting from it.
 */
 
 #include <math.h>
