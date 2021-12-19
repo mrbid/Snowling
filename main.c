@@ -589,7 +589,11 @@ void main_loop()
             rMinballRGB(bp.x, bp.y, bp.z, 1.f-(hardness*0.22f), 1.f, 1.f, ns);
 
             if(checkCollisions() == 3)
+#ifndef LEAK_CHECK_BRUTE
                 state = 3;
+#else
+                state = 2;
+#endif
         }
     }
     else if(state == 1) // pins knocked down freeze state
