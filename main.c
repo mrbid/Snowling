@@ -558,9 +558,10 @@ void main_loop()
 
     // simulate the blowing snowball & transition the game states
     static double s1lt = 0;
-    static f32 x = 10.5f; 
+    static f32 x = 10.5f;
+    static f32 ms = -1.f;
 
-    if(state == 0)
+    if(state == 0) // bowl simulation state
     {
         if(stepspeed == 0.f)
         {
@@ -588,10 +589,10 @@ void main_loop()
             rMinballRGB(bp.x, bp.y, bp.z, 1.f-(hardness*0.22f), 1.f, 1.f, ns);
 
             if(checkCollisions() == 3)
-                state = 2;
+                state = 3;
         }
     }
-    else if(state == 1)
+    else if(state == 1) // pins knocked down freeze state
     {
         if(s1lt == 0)
         {
@@ -606,6 +607,7 @@ void main_loop()
                     timestamp(&strts[0]);
                     printf("[%s] ~~ PENALTY YOU FAILED TO KNOCK DOWN ANY PINS ~~\n", strts);
                     penalty++;
+                    s1lt = t + 1;
                 }
                 else if(rscore >= 10)
                 {
@@ -613,12 +615,14 @@ void main_loop()
                     char strts[16];
                     timestamp(&strts[0]);
                     printf("[%s] !!! STRIKE !!! - ROUND %u - SCORE %u\n", strts, ground, rscore);
+                    s1lt = t + 3;
                 }
                 else
                 {
                     char strts[16];
                     timestamp(&strts[0]);
                     printf("[%s] ~~ ROUND %u SCORE %u ~~\n", strts, ground, rscore);
+                    s1lt = t + 1;
                 }
                 score += rscore;
             }
@@ -628,17 +632,17 @@ void main_loop()
                 timestamp(&strts[0]);
                 printf("[%s] ~~ PENALTY YOU FAILED TO KNOCK DOWN ANY PINS ~~\n", strts);
                 penalty++;
+                s1lt = t + 1;
             }
 
-            // pause time between rounds
-#ifndef AUTOMATE
-            s1lt = t + 3;
+#ifdef AUTOMATE
+            s1lt = 0;
 #endif
         }
         if(t > s1lt)
             state = 2;
     }
-    else if(state == 2)
+    else if(state == 2) // new round state
     {
         // reset
         lightpos.y = 7.f;
@@ -649,7 +653,27 @@ void main_loop()
         state = 0;
         s1lt = 0;
         rscore = 0;
+        ms = -1.f;
         gNewRound();
+    }
+    else if(state == 3) // hit lava, melting state (worst animation ever)
+    {
+        static f32 rsms = 0.f;
+        if(ms == -1.f)
+        {
+            ms = (10.5f-x)*0.4f;
+            rsms = 1.f/ms;
+            if(ms < 1.f)
+                ms = 1.f;
+        }
+
+        ms -= 1.f * dt;
+        if(ms <= 0.f)
+            state = 2;
+
+        bp.z -= 0.075f * dt;
+
+        rMinballRGB(bp.x, bp.y, bp.z, 1.f, 1.f - (1.f-ms*rsms), 1.f - (1.f-ms*rsms), ms);
     }
 
 //*************************************
