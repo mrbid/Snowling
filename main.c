@@ -81,7 +81,6 @@ GLint solidcolor_id;
 GLint color_id;
 GLint opacity_id;
 GLint normal_id;
-GLint type_id;
 GLint texcoord_id;
 GLint sampler_id;
 
