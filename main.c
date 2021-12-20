@@ -753,36 +753,37 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
     if(stepspeed == 0.f && tab == 0)
     {
         // center
-        if(key == GLFW_KEY_5){ stepspeed = ls; s0lt = t - PI; }
-        if(key == GLFW_KEY_6){ stepspeed = ls; s0lt = t; }
+        if(key == GLFW_KEY_5){ stepspeed = ls; s0lt = t - PI; return; }
+        if(key == GLFW_KEY_6){ stepspeed = ls; s0lt = t; return; }
 
         // inner
-        if(key == GLFW_KEY_4){ stepspeed = ls; s0lt = t - (0.6283185482f * 4.0f); }
-        if(key == GLFW_KEY_7){ stepspeed = ls; s0lt = t - (0.6283185482f * 9.0f); }
+        if(key == GLFW_KEY_4){ stepspeed = ls; s0lt = t - (0.6283185482f * 4.0f); return; }
+        if(key == GLFW_KEY_7){ stepspeed = ls; s0lt = t - (0.6283185482f * 9.0f); return; }
 
         // just off center
-        if(key == GLFW_KEY_3){ stepspeed = ls; s0lt = t - (0.6283185482f * 6.0f); }
-        if(key == GLFW_KEY_8){ stepspeed = ls; s0lt = t - 0.6283185482f; }
+        if(key == GLFW_KEY_3){ stepspeed = ls; s0lt = t - (0.6283185482f * 6.0f); return; }
+        if(key == GLFW_KEY_8){ stepspeed = ls; s0lt = t - 0.6283185482f; return; }
 
         // wide center
-        if(key == GLFW_KEY_2){ stepspeed = ls; s0lt = t - (0.6283185482f * 7.0f); }
-        if(key == GLFW_KEY_9){ stepspeed = ls; s0lt = t - (0.6283185482f * 2.0f); }
+        if(key == GLFW_KEY_2){ stepspeed = ls; s0lt = t - (0.6283185482f * 7.0f); return; }
+        if(key == GLFW_KEY_9){ stepspeed = ls; s0lt = t - (0.6283185482f * 2.0f); return; }
 
         // super wide
-        if(key == GLFW_KEY_1){ stepspeed = ls; s0lt = t - (0.6283185482f * 8.0f); }
-        if(key == GLFW_KEY_0){ stepspeed = ls; s0lt = t - (0.6283185482f * 3.0f); }
+        if(key == GLFW_KEY_1){ stepspeed = ls; s0lt = t - (0.6283185482f * 8.0f); return; }
+        if(key == GLFW_KEY_0){ stepspeed = ls; s0lt = t - (0.6283185482f * 3.0f); return; }
 
         // simple
-        if(key == GLFW_KEY_LEFT) { stepspeed = 1.5f; s0lt = t - 3.3f; }
-        if(key == GLFW_KEY_RIGHT){ stepspeed = 1.5f; s0lt = t - 6.4f; }
-        if(key == GLFW_KEY_UP)   { stepspeed = 4.5f; s0lt = t - 9.9f; }
-        if(key == GLFW_KEY_DOWN) { stepspeed = 4.5f; s0lt = t; }
+        if(key == GLFW_KEY_LEFT) { stepspeed = 1.5f; s0lt = t - 3.3f; return; }
+        if(key == GLFW_KEY_RIGHT){ stepspeed = 1.5f; s0lt = t - 6.4f; return; }
+        if(key == GLFW_KEY_UP)   { stepspeed = 4.5f; s0lt = t - 9.9f; return; }
+        if(key == GLFW_KEY_DOWN) { stepspeed = 4.5f; s0lt = t; return; }
 
         // random
         if(key == GLFW_KEY_R || key == GLFW_KEY_RIGHT_SHIFT) 
         {
             stepspeed = 0.5f + randf()*6.f; // 1.5f higher possible speed with random
             s0lt = t - randf()*x2PI;
+            return;
         }
     }
 
