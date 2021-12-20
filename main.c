@@ -17,7 +17,8 @@
     set. Depth buffer culling gains almost non-existant.
 
     I don't think I've missed any other opportunities I
-    have not listed above.
+    have not listed above. Well I could re-export the mesh
+    so that I don't need to perform the camera rotations.
 
     Notes:
         Looks like the aliased_sin() trick doesn't work
