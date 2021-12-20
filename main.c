@@ -67,8 +67,6 @@ uint winw = 1024;
 uint winh = 768;
 double t = 0;
 f32 aspect;
-f32 sens = 0.3f;
-f32 sens_mul = 0.2f;
 double ww, wh, ww2, wh2;
 double uw, uh, uw2, uh2; // normalised pixel dpi
 
