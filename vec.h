@@ -178,11 +178,11 @@ void vRuvBT(vec* v)
     // https://math.stackexchange.com/a/1586185
     // or should I have called this vRuvLR()
     // https://mathworld.wolfram.com/SpherePointPicking.html
-    const float y = acos((randf() * 2.f) - 1.f) - d2PI;
+    const float y = acosf((randf() * 2.f) - 1.f) - d2PI;
     const float p = x2PI * randf();
-    v->x = cos(y) * cos(p);
-    v->y = cos(y) * sin(p);
-    v->z = sin(y);
+    v->x = cosf(y) * cosf(p);
+    v->y = cosf(y) * sinf(p);
+    v->z = sinf(y);
 }
 
 void vRuvTA(vec* v)
@@ -201,8 +201,8 @@ void vRuvTA(vec* v)
 void vRuvTD(vec* v)
 {
     // T.P.Davison@tees.ac.uk
-    v->x = sin((randf() * x2PI) - PI);
-    v->y = cos((randf() * x2PI) - PI);
+    v->x = sinf((randf() * x2PI) - PI);
+    v->y = cosf((randf() * x2PI) - PI);
     v->z = (randf() * 2.f) - 1.f;
 }
 
@@ -340,20 +340,20 @@ void vDir(vec* r, const vec v1, const vec v2)
 
 void vRotX(vec* v, const float radians)
 {
-    v->y = v->y * cos(radians) + v->z * sin(radians);
-    v->z = v->y * sin(radians) - v->z * cos(radians);
+    v->y = v->y * cosf(radians) + v->z * sinf(radians);
+    v->z = v->y * sinf(radians) - v->z * cosf(radians);
 }
 
 void vRotY(vec* v, const float radians)
 {
-    v->x = v->z * sin(radians) - v->x * cos(radians);
-    v->z = v->z * cos(radians) + v->x * sin(radians);
+    v->x = v->z * sinf(radians) - v->x * cosf(radians);
+    v->z = v->z * cosf(radians) + v->x * sinf(radians);
 }
 
 void vRotZ(vec* v, const float radians)
 {
-    v->x = v->x * cos(radians) + v->y * sin(radians);
-    v->y = v->x * sin(radians) - v->y * cos(radians);
+    v->x = v->x * cosf(radians) + v->y * sinf(radians);
+    v->y = v->x * sinf(radians) - v->y * cosf(radians);
 }
 
 void vAdd(vec* r, const vec v1, const vec v2)
