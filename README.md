@@ -1,7 +1,7 @@
 # Snowling
 A simple bowling game with a festive twist.
 
-![A screenshot of the game Snowling](https://dashboard.snapcraft.io/site_media/appmedia/2021/12/Screenshot_2021-12-15_20-36-11.png)
+[![A screenshot of the game Snowling](https://dashboard.snapcraft.io/site_media/appmedia/2021/12/Screenshot_2021-12-15_20-36-11.png)](https://www.youtube.com/watch?v=RN6lRq4bKWk "Snowling Game Video")
 
 ### How to play
 
