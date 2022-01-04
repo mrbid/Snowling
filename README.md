@@ -5,7 +5,7 @@ A simple bowling game with a festive twist.
 
 ### How to play
 
-The premise is simple; you must launch the snowball at the pins and knock them down, seems easy right? Well, your snowball wont knock any pins down unless you roll over some ice first to harden it up. There are three obstacles in the game:
+The premise is simple; you must launch the snowball at the pins and knock them down, seems easy right? Well, your snowball won't knock any pins down unless you roll over some ice first to harden it up. There are three obstacles in the game:
 * Ice _(color: Aqua)_ - Hardens your snowball to pack a heavier punch on the pins.
 * Boost _(color: Purple)_ - Increases the speed of your snowball to blow a heavier punch on the pins.
 * Lava _(color: Red)_ - Melts your snowball; instant penalty.
@@ -14,7 +14,7 @@ It's best to play with your keyboard but Joystick is also supported.
 
 **Key Bindings:**
 * `TAB/SPACE + 0-9` - Select launch speed.
-* `0-9` - Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.
+* `0-9` - Launch ball at one of 10 different angles, 5-1 for left-hand launches and 6-0 for right-hand launches.
 * `R/LSHIFT` - Launch ball at a random angle and speed.
 * `Left, Right, Up, Down` - Launch ball at four quick selection angles and speeds.
 
@@ -24,7 +24,7 @@ It's best to play with your keyboard but Joystick is also supported.
 * `Button 1` - Launch
 * `Button 2` - Random Launch
 
-I tend to just use `UP, DOWN, LEFT, RIGHT` and `R` when I play, but if you are competitive you will want to get accustomed with using `SPACE + 0-9` & `0-9`.
+I tend to just use `UP, DOWN, LEFT, RIGHT`, and `R` when I play, but if you are competitive you will want to get accustomed to using `SPACE + 0-9` & `0-9`.
 
 ---
 
