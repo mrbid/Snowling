@@ -588,7 +588,7 @@ void main_loop()
 #ifdef __x86_64__ 
                 const f32 h = aliased_sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
 #else
-                const f32 h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
+                const f32 h = sinf(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
 #endif
 
             f32 ns = (10.5f-x)*0.4f;
@@ -871,7 +871,7 @@ int main(int argc, char** argv)
 #ifdef __x86_64__ 
     // gen sine table
     for(int i = 0; i < 65536; i++)
-        sine_wtable[i] = sin(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
+        sine_wtable[i] = sinf(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
 #endif
 
     // gen height table
