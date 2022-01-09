@@ -226,7 +226,8 @@ void gNewRound()
     }
 
     // rebind
-    esBind(GL_ARRAY_BUFFER, &mdlDynamic.cid, dynamic_colors, sizeof(dynamic_colors), GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, mdlDynamic.cid);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(dynamic_colors), dynamic_colors, GL_STATIC_DRAW);
 
 
 #ifdef AUTOMATE
@@ -347,7 +348,6 @@ void rStaticScene()
     glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
-    glUniform1f(opacity_id, 1.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, mdlScene.vid);
     glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -373,7 +373,6 @@ void rDynamicScene()
     glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
-    glUniform1f(opacity_id, 1.0f);
 
     glBindBuffer(GL_ARRAY_BUFFER, mdlDynamic.vid);
     glVertexAttribPointer(position_id, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -404,7 +403,6 @@ void rMinballRGB(f32 x, f32 y, f32 z, f32 r, f32 g, f32 b, f32 s)
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &modelview.m[0][0]);
     glUniform3f(color_id, r, g, b);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
-    glUniform1f(opacity_id, 1.0f);
 
     if(bindstate == 0)
     {
@@ -554,15 +552,18 @@ void main_loop()
 
     // render sky plane
     shadeFullbrightT(&position_id, &projection_id, &modelview_id, &texcoord_id, &sampler_id);
+    glUniform1f(opacity_id, 1.0f);
     rSkyPlane();
 
     // render static and dynamic scenes
     shadeLambert3(&position_id, &projection_id, &modelview_id, &lightpos_id, &normal_id, &color_id, &opacity_id);
+    glUniform1f(opacity_id, 1.0f);
     rStaticScene();
     rDynamicScene();
 
     // only rendering icospheres from here on out
     shadeLambert(&position_id, &projection_id, &modelview_id, &lightpos_id, &color_id, &opacity_id);
+    glUniform1f(opacity_id, 1.0f);
     rPinSet();
 
     // simulate the blowing snowball & transition the game states
@@ -587,7 +588,7 @@ void main_loop()
 #ifdef __x86_64__ 
                 const f32 h = aliased_sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
 #else
-                const f32 h = sinf(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
+                const f32 h = sin(t-s0lt)*(1.38f-((10.5f-x)*0.1f));
 #endif
 
             f32 ns = (10.5f-x)*0.4f;
@@ -779,7 +780,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         if(key == GLFW_KEY_DOWN) { stepspeed = 4.5f; s0lt = t; return; }
 
         // random
-        if(key == GLFW_KEY_R || key == GLFW_KEY_RIGHT_SHIFT) 
+        if(key == GLFW_KEY_R || key == GLFW_KEY_SPACE || key == GLFW_KEY_RIGHT_SHIFT) 
         {
             stepspeed = 0.5f + randf()*6.f; // 1.5f higher possible speed with random
             s0lt = t - randf()*x2PI;
@@ -827,7 +828,7 @@ int main(int argc, char** argv)
     printf("Key Bindings:\n");
     printf(" - [TAB/SPACE + 0-9] Select launch speed.\n");
     printf(" - [0-9] Launch ball at one of 10 different angles, 5-1 for left hand launches and 6-0 for right hand launches.\n");
-    printf(" - [R/LSHIFT] Launch ball at a random angle and speed.\n");
+    printf(" - [R/LSHIFT/SPACE] Launch ball at a random angle and speed.\n");
     printf(" - [Left, Right, Up, Down] Launch ball at four quick selection angles and speeds.\n\n");
     printf("Joypad Bindings:\n");
     printf(" - [Stick 1 - Left to Right] Launch Angle\n");
@@ -868,9 +869,9 @@ int main(int argc, char** argv)
     srandf(time(0));
 
 #ifdef __x86_64__ 
-        // gen sine table
-        for(int i = 0; i < 65536; i++)
-            sine_wtable[i] = sinf(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
+    // gen sine table
+    for(int i = 0; i < 65536; i++)
+        sine_wtable[i] = sin(i * 9.587380191e-05f); // 9.587380191e-05f = x2PIf / 65536.f;
 #endif
 
     // gen height table
