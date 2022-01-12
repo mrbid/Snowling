@@ -780,7 +780,7 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
         if(key == GLFW_KEY_DOWN) { stepspeed = 4.5f; s0lt = t; return; }
 
         // random
-        if(key == GLFW_KEY_R || key == GLFW_KEY_SPACE || key == GLFW_KEY_RIGHT_SHIFT) 
+        if(key == GLFW_KEY_R || key == GLFW_KEY_RIGHT_SHIFT) 
         {
             stepspeed = 0.5f + randf()*6.f; // 1.5f higher possible speed with random
             s0lt = t - randf()*x2PI;
