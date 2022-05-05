@@ -951,7 +951,7 @@ int main(int argc, char** argv)
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
-    glClearColor(0.0, 0.0, 0.0, 0.0);
+    glClearColor(0.20000f, 0.34510f, 0.48627f, 0.0);
 
 //*************************************
 // execute update / render loop
