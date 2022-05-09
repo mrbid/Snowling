@@ -488,7 +488,7 @@ void main_loop()
 // time delta for interpolation
 //*************************************
     static double lt = 0;
-    float dt = t-lt;
+    const f32 dt = t-lt;
     lt = t;
 
 //*************************************
