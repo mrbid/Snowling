@@ -488,7 +488,7 @@ void main_loop()
 // time delta for interpolation
 //*************************************
     static double lt = 0;
-    double dt = t-lt;
+    float dt = t-lt;
     lt = t;
 
 //*************************************
