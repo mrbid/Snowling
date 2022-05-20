@@ -565,7 +565,7 @@ void main_loop()
     glUniform1f(opacity_id, 1.0f);
     rPinSet();
 
-    // simulate the blowing snowball & transition the game states
+    // simulate the bowling snowball & transition the game states
     static double s1lt = 0;
     static f32 x = 10.5f;
     static f32 ms = -1.f;
