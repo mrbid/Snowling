@@ -922,17 +922,17 @@ int main(int argc, char** argv)
     esBind(GL_ARRAY_BUFFER, &mdlScene.vid, scene_vertices, sizeof(scene_vertices), GL_STATIC_DRAW);
     esBind(GL_ARRAY_BUFFER, &mdlScene.nid, scene_normals, sizeof(scene_normals), GL_STATIC_DRAW);
     esBind(GL_ARRAY_BUFFER, &mdlScene.cid, scene_colors, sizeof(scene_colors), GL_STATIC_DRAW);
-    esBind(GL_ARRAY_BUFFER, &mdlScene.iid, scene_indices, sizeof(scene_indices), GL_STATIC_DRAW);
+    esBind(GL_ELEMENT_ARRAY_BUFFER, &mdlScene.iid, scene_indices, sizeof(scene_indices), GL_STATIC_DRAW);
 
     // ***** BIND DYNAMIC SCENE *****
     esBind(GL_ARRAY_BUFFER, &mdlDynamic.vid, dynamic_vertices, sizeof(dynamic_vertices), GL_STATIC_DRAW);
     esBind(GL_ARRAY_BUFFER, &mdlDynamic.nid, dynamic_normals, sizeof(dynamic_normals), GL_STATIC_DRAW);
     esBind(GL_ARRAY_BUFFER, &mdlDynamic.cid, dynamic_colors, sizeof(dynamic_colors), GL_STATIC_DRAW);
-    esBind(GL_ARRAY_BUFFER, &mdlDynamic.iid, dynamic_indices, sizeof(dynamic_indices), GL_STATIC_DRAW);
+    esBind(GL_ELEMENT_ARRAY_BUFFER, &mdlDynamic.iid, dynamic_indices, sizeof(dynamic_indices), GL_STATIC_DRAW);
 
     // ***** BIND MIN BALL *****
     esBind(GL_ARRAY_BUFFER, &mdlMinball.vid, minball_vertices, sizeof(minball_vertices), GL_STATIC_DRAW);
-    esBind(GL_ARRAY_BUFFER, &mdlMinball.iid, minball_indices, sizeof(minball_indices), GL_STATIC_DRAW);
+    esBind(GL_ELEMENT_ARRAY_BUFFER, &mdlMinball.iid, minball_indices, sizeof(minball_indices), GL_STATIC_DRAW);
 
 
 //*************************************
