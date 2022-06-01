@@ -33,6 +33,12 @@ https://www.youtube.com/watch?v=RN6lRq4bKWk
 
 ---
 
+### Simplified WebGL / Mobile version _(one click/tap random bowl only)_
+https://mrbid.github.io/snowling
+https://voxdsp.com/snowling
+
+---
+
 ### Snapcraft / Software Center
 https://snapcraft.io/snowling
 
