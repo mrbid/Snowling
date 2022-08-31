@@ -819,7 +819,7 @@ int main(int argc, char** argv)
 {
     // help
     printf("Snowling, A simple bowling game with a festive twist.\n");
-    printf("James William Fletcher (james@voxdsp.com)\n\n");
+    printf("James William Fletcher (github.com/mrbid)\n\n");
     printf("The premise is simple; you must launch the snowball at the pins and knock them down, seems easy right? Well, your snowball wont knock any pins down unless you roll over some ice first to harden it up. There are three obstacles in the game:\n\n");
     printf("Ice (color: Aqua)\n - Hardens your snowball to pack a heavier punch on the pins.\n\n");
     printf("Boost (color: Purple)\n - Increases the speed of your snowball to blow a heavier punch on the pins.\n\n");
