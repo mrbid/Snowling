@@ -320,8 +320,6 @@ void rSkyPlane()
     }
 
     mMul(&modelview, &skyplane_model, &view);
-
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*)&projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*)&modelview.m[0][0]);
 
     glBindBuffer(GL_ARRAY_BUFFER, mdlPlane.tid);
@@ -344,7 +342,6 @@ void rStaticScene()
 {
     bindstate = 0;
 
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
 
@@ -369,7 +366,6 @@ void rDynamicScene()
 {
     bindstate = 0;
 
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &view.m[0][0]);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
 
@@ -398,7 +394,6 @@ void rMinballRGB(f32 x, f32 y, f32 z, f32 r, f32 g, f32 b, f32 s)
         mScale(&model, s, s, s);
     mMul(&modelview, &model, &view);
 
-    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*) &projection.m[0][0]);
     glUniformMatrix4fv(modelview_id, 1, GL_FALSE, (f32*) &modelview.m[0][0]);
     glUniform3f(color_id, r, g, b);
     glUniform3f(lightpos_id, lightpos.x, lightpos.y, lightpos.z);
@@ -551,17 +546,20 @@ void main_loop()
 
     // render sky plane
     shadeFullbrightT(&position_id, &projection_id, &modelview_id, &texcoord_id, &sampler_id);
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*)&projection.m[0][0]);
     glUniform1f(opacity_id, 1.0f);
     rSkyPlane();
 
     // render static and dynamic scenes
     shadeLambert3(&position_id, &projection_id, &modelview_id, &lightpos_id, &normal_id, &color_id, &opacity_id);
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*)&projection.m[0][0]);
     glUniform1f(opacity_id, 1.0f);
     rStaticScene();
     rDynamicScene();
 
     // only rendering icospheres from here on out
     shadeLambert(&position_id, &projection_id, &modelview_id, &lightpos_id, &color_id, &opacity_id);
+    glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*)&projection.m[0][0]);
     glUniform1f(opacity_id, 1.0f);
     rPinSet();
 
