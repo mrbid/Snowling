@@ -547,7 +547,6 @@ void main_loop()
     // render sky plane
     shadeFullbrightT(&position_id, &projection_id, &modelview_id, &texcoord_id, &sampler_id);
     glUniformMatrix4fv(projection_id, 1, GL_FALSE, (f32*)&projection.m[0][0]);
-    glUniform1f(opacity_id, 1.0f);
     rSkyPlane();
 
     // render static and dynamic scenes
