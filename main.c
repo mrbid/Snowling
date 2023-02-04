@@ -239,13 +239,16 @@ void gNewRound()
 #endif
 }
 
-uint checkCollisions()
+uint checkCollisions(const f32 bpy)
 {
-    static double ccl = 0;
-    if(t < ccl)
-        return 0;
-    else
-        ccl = t + 0.05; // limit checkCollisions() execution frequency
+    // static double ccl = 0;
+    // if(t < ccl)
+    //     return 0;
+    // else
+    //     ccl = t + 0.05; // limit checkCollisions() execution frequency
+
+    vec lbp = bp;
+    lbp.z -= bpy;
 
     static double tt1 = 0, tt2 = 0, tt3 = 0;
     static const GLushort tc = (dynamic_numvert-1)*3;
@@ -258,7 +261,7 @@ uint checkCollisions()
         if(t > tt1 && dynamic_colors[i] == 0.f && dynamic_colors[i+1] == 1.f && dynamic_colors[i+2] == 1.f)
         {
             const vec cp = {dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
-            if(vDist(cp, bp) < 0.13f)
+            if(vDistSq(cp, lbp) < 0.0169f)
             {
                 hardness += 1.f;
                 char strts[16];
@@ -271,7 +274,7 @@ uint checkCollisions()
         else if(t > tt2 && dynamic_colors[i] == 0.50196f && dynamic_colors[i+1] == 0.f && dynamic_colors[i+2] == 0.50196f)
         {
             const vec cp = {dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
-            if(vDist(cp, bp) < 0.13f)
+            if(vDistSq(cp, lbp) < 0.0169f)
             {
                 stepspeed *= 3.4f;
                 char strts[16];
@@ -284,7 +287,7 @@ uint checkCollisions()
         else if(t > tt3 && dynamic_colors[i] == 0.81176f && dynamic_colors[i+1] == 0.06275f && dynamic_colors[i+2] == 0.12549f)
         {
             const vec cp = {dynamic_vertices[i], dynamic_vertices[i+1], dynamic_vertices[i+2]};
-            if(vDist(cp, bp) < 0.13f)
+            if(vDistSq(cp, lbp) < 0.0169f)
             {
                 penalty++;
                 char strts[16];
@@ -595,10 +598,11 @@ void main_loop()
 
             bp.x = x;
             bp.y = h-0.017f;
-            bp.z = getHeight(h);
+            const f32 ho = ((1.f-(bp.x*0.09523809701f))*0.08f);
+            bp.z = getHeight(h) + ho;
             rMinballRGB(bp.x, bp.y, bp.z, 1.f-(hardness*0.22f), 1.f, 1.f, ns);
 
-            if(checkCollisions() == 3)
+            if(checkCollisions(ho) == 3)
 #ifndef LEAK_CHECK_BRUTE
                 state = 3;
 #else
@@ -795,9 +799,9 @@ void window_size_callback(GLFWwindow* window, int width, int height)
     winh = height;
 
     glViewport(0, 0, winw, winh);
-    aspect = (f32)winw / (f32)winh;
     ww = winw;
     wh = winh;
+    aspect = ww / wh;
     ww2 = ww/2;
     wh2 = wh/2;
     uw = (double)aspect / ww;
@@ -807,6 +811,18 @@ void window_size_callback(GLFWwindow* window, int width, int height)
 
     mIdent(&projection);
     mPerspective(&projection, 60.0f, aspect, 1.0f, 160.0f); 
+}
+
+void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        if(stepspeed == 0.f)
+        {
+            stepspeed = 0.5f + randf()*6.f;
+            s0lt = t - randf()*x2PI;
+        }
+    }
 }
 
 //*************************************
@@ -848,6 +864,7 @@ int main(int argc, char** argv)
     glfwSetWindowPos(window, (desktop->width/2)-(winw/2), (desktop->height/2)-(winh/2)); // center window on desktop
     glfwSetWindowSizeCallback(window, window_size_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwMakeContextCurrent(window);
     gladLoadGL(glfwGetProcAddress);
     glfwSwapInterval(1); // 0 for immediate updates, 1 for updates synchronized with the vertical retrace, -1 for adaptive vsync
