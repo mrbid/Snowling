@@ -12,6 +12,9 @@ The premise is simple; you must launch the snowball at the pins and knock them d
 
 It's best to play with your keyboard but Joystick is also supported.
 
+**Mouse Bindings:**
+* `LEFT MOUSE` - Random bowl.
+
 **Key Bindings:**
 * `TAB/SPACE + 0-9` - Select launch speed.
 * `0-9` - Launch ball at one of 10 different angles, 5-1 for left-hand launches and 6-0 for right-hand launches.
