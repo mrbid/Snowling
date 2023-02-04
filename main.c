@@ -241,13 +241,13 @@ void gNewRound()
 
 uint checkCollisions(const f32 bpy)
 {
-#ifdef __arm__
-    static double ccl = 0;
-    if(t < ccl)
-        return 0;
-    else
-        ccl = t + 0.05; // limit checkCollisions() execution frequency
-#endif
+// #ifdef __arm__
+//     static double ccl = 0;
+//     if(t < ccl)
+//         return 0;
+//     else
+//         ccl = t + 0.05; // limit checkCollisions() execution frequency
+// #endif
     
     vec lbp = bp;
     lbp.z -= bpy;
